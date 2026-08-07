@@ -234,7 +234,7 @@ export default function App() {
       <style>{GLOBAL_CSS}</style>
       <div className="wrap">
         <h1>Calorie Tracker</h1>
-        <p className="subtitle">Ruonan · 35F · 5'4" · 156 lbs ✓</p>
+        <p className="subtitle">Ruonan · 35F · 5'4" · 156 lbs</p>
         <div className="page-links">
           <button className="rules-link" onClick={() => setPage("calc")}>Calculation rule</button>
           <button className="rules-link" onClick={() => setPage("frequent")}>Frequently eat</button>
