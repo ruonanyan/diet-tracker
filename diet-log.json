@@ -1,0 +1,185 @@
+{
+  "2026-06-24": [
+    { "id": 199, "time": "morning", "item": "Homemade pork wontons (7 pieces) + hard boiled eggs (2)", "calories": 469, "protein": 26, "carbs": 24, "fat": 17 },
+    { "id": 200, "time": "morning", "item": "Watermelon (73g)", "calories": 22, "protein": 0, "carbs": 5, "fat": 0 },
+    { "id": 201, "time": "morning", "item": "Chocolove 70% Dark Chocolate (2 pieces)", "calories": 100, "protein": 1, "carbs": 10, "fat": 6 },
+    { "id": 202, "time": "midday", "item": "Homemade turkey meatballs (7 pieces) + Carbone marinara sauce (125g)", "calories": 519, "protein": 36, "carbs": 15, "fat": 38 }
+  ],
+  "2026-06-23": [
+    { "id": 195, "time": "morning", "item": "Dim sum: 2 糯米烧卖 duck yolk sticky rice siu mai, 2 小笼包, 2 eggs, 1 虾饺, 1 虾烧卖", "calories": 745, "protein": 38, "carbs": 72, "fat": 33 },
+    { "id": 197, "time": "morning", "item": "Matcha latte (Lactaid whole milk 100g)", "calories": 72, "protein": 3, "carbs": 6, "fat": 3 },
+    { "id": 196, "time": "midday", "item": "Pulmuone Kimchi Hotpot Udon (1 packet) + 潮汕牛肉丸 50g + 肥牛 140g + 冻豆腐 73g + 虾滑 21g (all frozen weight)", "calories": 764, "protein": 43, "carbs": 79, "fat": 28 },
+    { "id": 198, "time": "evening", "item": "Protein shake (Naked Whey 44g, Lactaid whole milk 150g)", "calories": 280, "protein": 30, "carbs": 21, "fat": 9 }
+  ],
+  "2026-06-22": [
+    { "id": 190, "time": "morning", "item": "Homemade pancakes (1/3 recipe: flour, egg, Lactaid milk, baking powder) + 2 breakfast sausage links", "calories": 409, "protein": 17, "carbs": 36, "fat": 21 },
+    { "id": 191, "time": "midday", "item": "Mixed white & brown rice with lima beans (160g cooked) + Ottogi 3 Min Spicy Curry Sauce (half pouch, 95g) + chicken thighs (225g cooked)", "calories": 740, "protein": 46, "carbs": 50, "fat": 33 },
+    { "id": 192, "time": "afternoon", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 193, "time": "evening", "item": "Salad (corn 250g, shrimp 85g, feta 27g, tomato 250g, EVOO 17g)", "calories": 565, "protein": 34, "carbs": 59, "fat": 28 },
+    { "id": 194, "time": "evening", "item": "Cocojune Organic Coconut Yogurt (50g)", "calories": 79, "protein": 1, "carbs": 4, "fat": 7 }
+  ],
+  "2026-06-21": [
+    { "id": 185, "time": "morning", "item": "Chocolove 65% Dark Chocolate (3 pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 186, "time": "midday", "item": "Egg, cheese & avocado ciabatta sandwich (ciabatta roll, 1 fried egg, 1 slice melted cheese, ~1/4 avocado) + Tropicana OJ (8 fl oz)", "calories": 610, "protein": 24, "carbs": 79, "fat": 23 },
+    { "id": 187, "time": "afternoon", "item": "Cocojune Organic Coconut Yogurt (50g)", "calories": 79, "protein": 1, "carbs": 4, "fat": 7 },
+    { "id": 188, "time": "evening", "item": "Tomato, corn, shrimp & feta salad with mint and EVOO (half portion; full: 419g tomato, 234g corn, 21.9g EVOO, 113g feta, 148.8g shrimp, 20g mint)", "calories": 459, "protein": 27, "carbs": 32, "fat": 26 },
+    { "id": 189, "time": "evening", "item": "Smoothie (Naked Whey 1 serving, Lactaid milk 300g, Daisy 2% cottage cheese 80g, frozen mixed berries 50g, frozen mango 50g, banana 1 medium)", "calories": 609, "protein": 45, "carbs": 75, "fat": 16 }
+  ],
+  "2026-06-20": [
+    { "id": 180, "time": "morning", "item": "Chocolove 65% Dark Chocolate (3 pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 181, "time": "morning", "item": "2.5 pop-up bagels with scallion cream cheese dip (~3 tbsp)", "calories": 600, "protein": 20, "carbs": 98, "fat": 12 },
+    { "id": 182, "time": "midday", "item": "Carrot-cucumber-apple-lemon-ginger juice + Sweetgreen Summer Market Bowl (spring mix + wild rice, sunflower seeds, cucumbers, roasted sweet potatoes, pickled onions, summer tomatoes, summer vegetable medley, feta, roasted chicken, pesto vinaigrette)", "calories": 940, "protein": 47, "carbs": 92, "fat": 40 },
+    { "id": 183, "time": "afternoon", "item": "Cocojune Organic Coconut Yogurt (60g)", "calories": 95, "protein": 1, "carbs": 5, "fat": 9 },
+    { "id": 184, "time": "midday", "item": "1/4 Peruvian chicken with small yellow rice and beans", "calories": 580, "protein": 48, "carbs": 48, "fat": 22 }
+  ],
+  "2026-06-19": [
+    { "id": 176, "time": "morning", "item": "Hash browns (170g/2 servings), 2 breakfast sausage links, 2 eggs", "calories": 460, "protein": 24, "carbs": 31, "fat": 26 },
+    { "id": 177, "time": "morning", "item": "Chocolove 65% Dark Chocolate (2 pieces)", "calories": 100, "protein": 1, "carbs": 11, "fat": 6 },
+    { "id": 178, "time": "midday", "item": "Pan-seared salmon (88g, half fillet), sautéed spinach (~100g cooked), mixed white & brown rice with lima beans (1 cup)", "calories": 505, "protein": 29, "carbs": 63, "fat": 14 },
+    { "id": 179, "time": "evening", "item": "冷面 bowl (noodles + broth/sauce, 2 shrimp, 2 small 酱牛肉, octopus & scallop pieces) + Hokkaido original cream puff", "calories": 660, "protein": 36, "carbs": 86, "fat": 18 }
+  ],
+  "2026-06-18": [
+    { "id": 171, "time": "morning", "item": "Sourdough toast (1 slice) with cottage cheese 40g, blueberries 40g, honey ~7g, and 2 eggs", "calories": 343, "protein": 21, "carbs": 36, "fat": 13 },
+    { "id": 173, "time": "midday", "item": "Shredded beef with green chili, cucumber salad (1/2), white rice (9/10)", "calories": 560, "protein": 32, "carbs": 50, "fat": 22 },
+    { "id": 172, "time": "evening", "item": "Dark chocolate (2 small pieces)", "calories": 100, "protein": 1, "carbs": 11, "fat": 6 },
+    { "id": 174, "time": "evening", "item": "Watermelon (~1 cup / 152g)", "calories": 46, "protein": 1, "carbs": 11, "fat": 0 },
+    { "id": 175, "time": "evening", "item": "Smoothie (Lactaid whole milk 200g, Naked Whey 44g, frozen mixed berries 25g, frozen mango 25g, banana, cottage cheese 170g)", "calories": 612, "protein": 52, "carbs": 64, "fat": 15 }
+  ],
+  "2026-06-17": [
+    { "id": 160, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 161, "time": "morning", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 162, "time": "morning", "item": "Handmade pork wontons (6 pieces)", "calories": 280, "protein": 13, "carbs": 30, "fat": 10 },
+    { "id": 163, "time": "morning", "item": "Hard boiled eggs (2)", "calories": 156, "protein": 12, "carbs": 2, "fat": 10 },
+    { "id": 164, "time": "midday", "item": "Pulmuone Kimchi Hotpot Udon (1 packet) with Chaoshan beef meatballs 潮汕牛肉丸 (50g frozen), frozen tofu 冻豆腐 (80g frozen), fatty beef slices 肥牛 (95g frozen)", "calories": 760, "protein": 39, "carbs": 82, "fat": 30 },
+    { "id": 165, "time": "evening", "item": "Prosciutto (2 slices)", "calories": 70, "protein": 6, "carbs": 0, "fat": 5 },
+    { "id": 166, "time": "evening", "item": "Provolone cheese (1 slice)", "calories": 100, "protein": 7, "carbs": 0, "fat": 8 },
+    { "id": 167, "time": "evening", "item": "Muenster cheese (1 slice)", "calories": 100, "protein": 6, "carbs": 0, "fat": 8 },
+    { "id": 168, "time": "evening", "item": "Kettle Brand BBQ potato chips (1 oz)", "calories": 150, "protein": 2, "carbs": 18, "fat": 8 },
+    { "id": 169, "time": "afternoon", "item": "Trail mix (2 servings, 1/4 cup/30g each)", "calories": 280, "protein": 4, "carbs": 32, "fat": 18 },
+    { "id": 170, "time": "afternoon", "item": "Honey coated turkey deli meat (2 slices)", "calories": 60, "protein": 6, "carbs": 2, "fat": 1 }
+  ],
+  "2026-06-16": [
+    { "id": 151, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 152, "time": "morning", "item": "Sourdough toast with cottage cheese, blueberries & honey", "calories": 147, "protein": 8, "carbs": 22, "fat": 3 },
+    { "id": 153, "time": "midday", "item": "香菇滑鸡 Shiitake mushroom steamed chicken with small multi-grain rice", "calories": 430, "protein": 37, "carbs": 38, "fat": 15 },
+    { "id": 154, "time": "evening", "item": "Honey coated turkey deli meat (4 slices)", "calories": 120, "protein": 12, "carbs": 4, "fat": 2 },
+    { "id": 155, "time": "evening", "item": "Provolone cheese (2 slices)", "calories": 200, "protein": 14, "carbs": 1, "fat": 16 },
+    { "id": 156, "time": "evening", "item": "Prosciutto (2 slices)", "calories": 70, "protein": 6, "carbs": 0, "fat": 5 },
+    { "id": 157, "time": "evening", "item": "Protein shake (Naked Whey 1 serving/44g, Lactaid whole milk 200g/0.83 serving)", "calories": 313, "protein": 32, "carbs": 24, "fat": 10 },
+    { "id": 158, "time": "evening", "item": "Kettle Brand BBQ potato chips (1 oz)", "calories": 150, "protein": 2, "carbs": 18, "fat": 8 }
+  ],
+  "2026-06-15": [
+    { "id": 146, "time": "morning", "item": "Sourdough toast with cottage cheese, blueberries & honey", "calories": 147, "protein": 8, "carbs": 22, "fat": 3 },
+    { "id": 147, "time": "morning", "item": "Matcha latte (200ml, whole milk)", "calories": 135, "protein": 7, "carbs": 13, "fat": 6 },
+    { "id": 148, "time": "morning", "item": "Sunny side eggs (2) with leftover butter", "calories": 150, "protein": 12, "carbs": 1, "fat": 11 },
+    { "id": 130, "time": "midday", "item": "8 turkey meatballs in marinara sauce (1/4 jar), 2 slices toasted sourdough bread", "calories": 935, "protein": 58, "carbs": 77, "fat": 53 },
+    { "id": 150, "time": "afternoon", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 149, "time": "evening", "item": "Protein shake (Naked Whey 1 serving/44g, Lactaid whole milk 200g/0.83 serving)", "calories": 313, "protein": 32, "carbs": 24, "fat": 10 }
+  ],
+  "2026-06-14": [
+    { "id": 140, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 141, "time": "morning", "item": "Lox everything bagel with cream cheese (3/4 bagel)", "calories": 390, "protein": 19, "carbs": 45, "fat": 15 },
+    { "id": 142, "time": "morning", "item": "Scrambled egg (small piece, ~1oz)", "calories": 25, "protein": 2, "carbs": 0, "fat": 2 },
+    { "id": 143, "time": "afternoon", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 144, "time": "evening", "item": "Elote sourdough pizza, 9-inch thin crust (1/3 of pizza)", "calories": 523, "protein": 25, "carbs": 45, "fat": 27 },
+    { "id": 145, "time": "evening", "item": "Smoothie (Naked Whey 2 scoops, milk 170g, cottage cheese 40g)", "calories": 345, "protein": 37, "carbs": 20, "fat": 13 }
+  ],
+  "2026-06-13": [
+    { "id": 120, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 121, "time": "morning", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 122, "time": "afternoon", "item": "Not A Margarita (jasmine tea, agave, tonic, blue spirulina) 410ml", "calories": 100, "protein": 0, "carbs": 24, "fat": 0 },
+    { "id": 123, "time": "midday", "item": "叉烧葱鸡双拼饭 Char siu & scallion chicken combo rice (half char siu)", "calories": 420, "protein": 35, "carbs": 52, "fat": 11 },
+    { "id": 124, "time": "evening", "item": "Fried chicken tenders/wings (5 pieces) with dipping sauce, tater tots (~6)", "calories": 730, "protein": 29, "carbs": 50, "fat": 45 }
+  ],
+  "2026-06-12": [
+    { "id": 110, "time": "morning", "item": "Homemade pork wontons (4 pieces, ~62g)", "calories": 187, "protein": 9, "carbs": 20, "fat": 7 },
+    { "id": 111, "time": "morning", "item": "Hard boiled eggs (2)", "calories": 156, "protein": 12, "carbs": 2, "fat": 10 },
+    { "id": 112, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 113, "time": "midday", "item": "Shredded beef with green chili, cucumber salad (1/2), multi-grain rice (6/10)", "calories": 502, "protein": 32, "carbs": 42, "fat": 22 },
+    { "id": 114, "time": "evening", "item": "Lean smoothie (Naked Whey, berries 50g, milk, cottage cheese 80g)", "calories": 391, "protein": 41, "carbs": 32, "fat": 13 },
+    { "id": 115, "time": "evening", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 }
+  ],
+  "2026-06-11": [
+    { "id": 100, "time": "morning", "item": "Scrambled eggs (2)", "calories": 140, "protein": 12, "carbs": 1, "fat": 10 },
+    { "id": 101, "time": "morning", "item": "Sausage patties (2)", "calories": 240, "protein": 14, "carbs": 2, "fat": 20 },
+    { "id": 102, "time": "morning", "item": "Hash brown (half 9-inch cast iron pan)", "calories": 125, "protein": 2, "carbs": 15, "fat": 7 },
+    { "id": 103, "time": "morning", "item": "Dark chocolate (2 small pieces)", "calories": 100, "protein": 1, "carbs": 11, "fat": 6 },
+    { "id": 104, "time": "midday", "item": "1/4 Peruvian chicken with yellow rice and beans", "calories": 670, "protein": 53, "carbs": 60, "fat": 25 },
+    { "id": 105, "time": "evening", "item": "Lean smoothie (Naked Whey, milk, cottage cheese 60g)", "calories": 345, "protein": 38, "carbs": 24, "fat": 12 },
+    { "id": 106, "time": "evening", "item": "Watermelon (1/4 small)", "calories": 90, "protein": 2, "carbs": 22, "fat": 0 }
+  ],
+  "2026-06-10": [
+    { "id": 90, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 91, "time": "morning", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 92, "time": "morning", "item": "Cocojune coconut yogurt (~0.6 serving)", "calories": 108, "protein": 1, "carbs": 5, "fat": 10 },
+    { "id": 93, "time": "midday", "item": "Pan-seared salmon with lettuce, half avocado, cucumber, EVOO balsamic dressing", "calories": 600, "protein": 42, "carbs": 16, "fat": 42 },
+    { "id": 94, "time": "evening", "item": "Lean smoothie (Naked Whey, berries 50g, milk, cottage cheese 60g)", "calories": 373, "protein": 39, "carbs": 31, "fat": 12 },
+    { "id": 95, "time": "evening", "item": "Honey coated turkey (66g)", "calories": 72, "protein": 12, "carbs": 3, "fat": 1 }
+  ],
+  "2026-06-09": [
+    { "id": 80, "time": "morning", "item": "Smoothie (berries, acai, mango, chia, milk, banana, cottage cheese, Naked Whey)", "calories": 598, "protein": 41, "carbs": 70, "fat": 21 },
+    { "id": 81, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 82, "time": "midday", "item": "香菇滑鸡要 Shiitake mushroom steamed chicken with brown rice", "calories": 495, "protein": 39, "carbs": 46, "fat": 17 },
+    { "id": 83, "time": "evening", "item": "Turkey sandwich (white bread, honey turkey 138g, mayo, Muenster x2, lettuce)", "calories": 630, "protein": 44, "carbs": 57, "fat": 23 }
+  ],
+  "2026-06-08": [
+    { "id": 70, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 71, "time": "morning", "item": "Homemade pork wontons (6 pieces) in broth", "calories": 280, "protein": 13, "carbs": 30, "fat": 10 },
+    { "id": 72, "time": "morning", "item": "Banana (half)", "calories": 53, "protein": 1, "carbs": 14, "fat": 0 },
+    { "id": 73, "time": "morning", "item": "Matcha latte (1.5 cup, likely whole milk)", "calories": 150, "protein": 6, "carbs": 15, "fat": 7 },
+    { "id": 74, "time": "midday", "item": "豉油鸡 Soy sauce chicken, no skin (~200g)", "calories": 280, "protein": 42, "carbs": 4, "fat": 10 },
+    { "id": 75, "time": "midday", "item": "Broccoli (~1 cup)", "calories": 35, "protein": 3, "carbs": 7, "fat": 0 },
+    { "id": 76, "time": "midday", "item": "Mixed rice (1/3 white, 2/3 brown, ~1/2 cup)", "calories": 110, "protein": 2, "carbs": 23, "fat": 1 },
+    { "id": 77, "time": "evening", "item": "Sweetgreen Classic Chicken Caesar Wrap", "calories": 830, "protein": 45, "carbs": 72, "fat": 35 }
+  ],
+  "2026-06-07": [
+    { "id": 60, "time": "morning", "item": "Dark chocolate (2 small pieces)", "calories": 100, "protein": 1, "carbs": 11, "fat": 6 },
+    { "id": 61, "time": "morning", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 62, "time": "midday", "item": "牛肉腸粉 Beef Cheung Fun (½ portion)", "calories": 230, "protein": 11, "carbs": 32, "fat": 6 },
+    { "id": 63, "time": "evening", "item": "Margherita + pepperoni pizza, 18-inch, 2 slices (light crust)", "calories": 480, "protein": 22, "carbs": 38, "fat": 26 },
+    { "id": 64, "time": "evening", "item": "Protein smoothie (whey, milk, berries, mango, chia, almond butter)", "calories": 555, "protein": 45, "carbs": 48, "fat": 23 },
+    { "id": 65, "time": "evening", "item": "Provolone cheese (2.5 slices)", "calories": 250, "protein": 18, "carbs": 0, "fat": 20 },
+    { "id": 66, "time": "evening", "item": "Watermelon (1 large slice, ~300g)", "calories": 90, "protein": 2, "carbs": 22, "fat": 0 },
+    { "id": 67, "time": "evening", "item": "Mandarin orange (1)", "calories": 45, "protein": 1, "carbs": 11, "fat": 0 }
+  ],
+  "2026-06-06": [
+    { "id": 40, "time": "morning", "item": "Scrambled eggs (2) with provolone (1 slice)", "calories": 230, "protein": 17, "carbs": 1, "fat": 17 },
+    { "id": 41, "time": "morning", "item": "Avocado (1 whole)", "calories": 240, "protein": 3, "carbs": 13, "fat": 22 },
+    { "id": 42, "time": "morning", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 43, "time": "morning", "item": "Blueberries (~¼ cup)", "calories": 20, "protein": 0, "carbs": 5, "fat": 0 },
+    { "id": 44, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 45, "time": "morning", "item": "Orange juice (200ml)", "calories": 100, "protein": 1, "carbs": 24, "fat": 0 },
+    { "id": 46, "time": "midday", "item": "Hakuna Burrata Salad with roasted turkey", "calories": 545, "protein": 50, "carbs": 17, "fat": 31 },
+    { "id": 47, "time": "evening", "item": "Ammi's lamb chops (3 pieces)", "calories": 480, "protein": 42, "carbs": 8, "fat": 30 },
+    { "id": 48, "time": "evening", "item": "Yogurt kabab (1)", "calories": 120, "protein": 6, "carbs": 10, "fat": 6 },
+    { "id": 49, "time": "evening", "item": "Banarasi puri (3.5 pieces)", "calories": 210, "protein": 5, "carbs": 28, "fat": 9 },
+    { "id": 50, "time": "evening", "item": "Garlic naan (~1 piece)", "calories": 220, "protein": 6, "carbs": 38, "fat": 5 },
+    { "id": 51, "time": "evening", "item": "Rose Kulfi Falooda (½ portion)", "calories": 180, "protein": 4, "carbs": 28, "fat": 6 }
+  ],
+  "2026-06-05": [
+    { "id": 30, "time": "morning", "item": "Thin sourdough toast with butter, cottage cheese, blueberries & honey", "calories": 210, "protein": 11, "carbs": 28, "fat": 6 },
+    { "id": 31, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 32, "time": "morning", "item": "Mandarin orange (1)", "calories": 45, "protein": 1, "carbs": 11, "fat": 0 },
+    { "id": 33, "time": "midday", "item": "Rigatoni (40g) with turkey meatballs x6, marinara & parmesan", "calories": 590, "protein": 50, "carbs": 40, "fat": 30 },
+    { "id": 34, "time": "evening", "item": "Lu Rou Fan with braised egg & fish ball", "calories": 610, "protein": 29, "carbs": 57, "fat": 28 }
+  ],
+  "2026-06-04": [
+    { "id": 20, "time": "morning", "item": "Sourdough toast with butter, cottage cheese, blueberries & honey", "calories": 280, "protein": 14, "carbs": 35, "fat": 8 },
+    { "id": 21, "time": "midday", "item": "Pulmuone Kimchi Pork Mandu (5 pieces)", "calories": 400, "protein": 15, "carbs": 50, "fat": 15 },
+    { "id": 22, "time": "midday", "item": "Banana (1 medium)", "calories": 105, "protein": 1, "carbs": 27, "fat": 0 },
+    { "id": 23, "time": "evening", "item": "Half sourdough turkey sandwich (turkey, provolone x3, olive oil mayo)", "calories": 590, "protein": 44, "carbs": 36, "fat": 30 }
+  ],
+  "2026-06-03": [
+    { "id": 10, "time": "midday", "item": "Roasted chicken breast", "calories": 280, "protein": 53, "carbs": 0, "fat": 6 },
+    { "id": 11, "time": "morning", "item": "Chips Ahoy cookie (1)", "calories": 55, "protein": 1, "carbs": 8, "fat": 2 },
+    { "id": 12, "time": "morning", "item": "Mandarin orange (1)", "calories": 45, "protein": 1, "carbs": 11, "fat": 0 },
+    { "id": 13, "time": "morning", "item": "Sourdough bread (3 slices, 1 with cottage cheese & blueberries)", "calories": 310, "protein": 14, "carbs": 52, "fat": 4 },
+    { "id": 14, "time": "afternoon", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 15, "time": "afternoon", "item": "Smoothie (acai, berries, banana, whole milk, mango, protein powder, chia, cottage cheese, almond butter)", "calories": 700, "protein": 54, "carbs": 72, "fat": 27 }
+  ],
+  "2026-05-31": [
+    { "id": 1, "time": "morning", "item": "Dark chocolate (3 small pieces)", "calories": 150, "protein": 2, "carbs": 17, "fat": 9 },
+    { "id": 2, "time": "morning", "item": "Whole wheat bagel (¾) with tofu spread", "calories": 230, "protein": 11, "carbs": 38, "fat": 5 },
+    { "id": 3, "time": "midday", "item": "Fried rice (1 bowl)", "calories": 500, "protein": 12, "carbs": 72, "fat": 18 }
+  ]
+}
