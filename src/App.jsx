@@ -86,7 +86,7 @@ const GLOBAL_CSS = `
   .overlay.hidden { opacity: 0; }
   .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 20; max-height: 82vh; overflow: hidden; box-shadow: 0 -4px 24px rgba(0,0,0,0.1); }
   .sheet-handle { width: 36px; height: 4px; background: #d6cfc4; border-radius: 2px; margin: 0.75rem auto 0.75rem; cursor: grab; touch-action: none; flex-shrink: 0; }
-  .sheet-panel { min-width: 100%; box-sizing: border-box; padding: 0 1.25rem 2.5rem; overflow-y: auto; max-height: calc(82vh - 36px); }
+  .sheet-panel { width: 50%; flex-shrink: 0; box-sizing: border-box; padding: 0 1.25rem 2.5rem; overflow-y: auto; max-height: calc(82vh - 36px); }
   .sheet-date { font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; font-style: italic; color: #2c2418; margin-bottom: 0.9rem; }
   .sheet-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
   .sheet-nav-btn { font-family: 'DM Mono', monospace; background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #9a8f7e; padding: 0 0.4rem; }
@@ -401,7 +401,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
           <div style={{ display: "flex", width: "200%", transform: subPageActive ? "translateX(-50%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
 
             {/* Panel 1: Main content */}
-            <div className="sheet-panel" style={{ width: "50%" }}>
+            <div className="sheet-panel">
               <div className="sheet-nav">
                 <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
                 <div className="sheet-date">{displayFull(date)}</div>
@@ -465,7 +465,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
             </div>
 
             {/* Panel 2: Sub-page form */}
-            <div className="sheet-panel" style={{ width: "50%" }}>
+            <div className="sheet-panel">
               <button className="back-link" onClick={closeSubPage} style={{ marginBottom: "1.25rem" }}>← Back</button>
               {subPage === "food" && (
                 <AddFormContent date={date} frequentFoods={frequentFoods}
