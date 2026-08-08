@@ -85,7 +85,8 @@ const GLOBAL_CSS = `
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 10; transition: opacity 0.3s ease; }
   .overlay.hidden { opacity: 0; }
   .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 20; max-height: 82vh; overflow: hidden; box-shadow: 0 -4px 24px rgba(0,0,0,0.1); }
-  .sheet-handle { width: 36px; height: 4px; background: #d6cfc4; border-radius: 2px; margin: 0.75rem auto 0.75rem; cursor: grab; touch-action: none; flex-shrink: 0; }
+  .sheet-handle-zone { padding: 16px 0 12px; touch-action: none; cursor: grab; }
+  .sheet-handle { width: 36px; height: 4px; background: #d6cfc4; border-radius: 2px; margin: 0 auto; }
   .sheet-panel { width: 50%; flex-shrink: 0; box-sizing: border-box; padding: 0 1.25rem 2.5rem; overflow-y: auto; max-height: calc(82vh - 36px); }
   .sheet-date { font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; font-style: italic; color: #2c2418; margin-bottom: 0.9rem; }
   .sheet-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
@@ -337,6 +338,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
   }
   function onTouchMove(e) {
     if (dragStartY.current === null) return;
+    e.preventDefault();
     dragCurrentY.current = e.touches[0].clientY;
     const dy = dragCurrentY.current - dragStartY.current;
     if (dy > 0) {
@@ -393,8 +395,10 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
     <>
       <div className={`overlay${open ? "" : " hidden"}`} onClick={closeSheet} />
       <div className="sheet" ref={sheetRef} style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)" }}>
-        <div className="sheet-handle"
-          onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} />
+        <div className="sheet-handle-zone"
+          onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+          <div className="sheet-handle" />
+        </div>
 
         {/* Horizontal slide container */}
         <div style={{ overflow: "hidden" }}>
