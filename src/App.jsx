@@ -84,8 +84,7 @@ const GLOBAL_CSS = `
   /* Sheet overlay */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 10; transition: opacity 0.3s ease; }
   .overlay.hidden { opacity: 0; }
-  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 20; padding: 0 1.25rem 2.5rem; max-height: 82vh; overflow-y: auto; box-shadow: 0 -4px 24px rgba(0,0,0,0.1); transform: translateY(100%); transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1); }
-  .sheet.open { transform: translateY(0); }
+  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 20; padding: 0 1.25rem 2.5rem; max-height: 82vh; overflow-y: auto; box-shadow: 0 -4px 24px rgba(0,0,0,0.1); }
   .sheet-handle { width: 36px; height: 4px; background: #d6cfc4; border-radius: 2px; margin: 0.75rem auto 1.25rem; cursor: grab; touch-action: none; }
   .sheet-date { font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; font-style: italic; color: #2c2418; margin-bottom: 0.9rem; }
   .sheet-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
@@ -381,7 +380,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
   return (
     <>
       <div className={`overlay${open ? "" : " hidden"}`} onClick={closeSheet} />
-      <div className={`sheet${open ? " open" : ""}`} ref={sheetRef}>
+      <div className="sheet" ref={sheetRef} style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)" }}>
         <div className="sheet-handle"
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} />
         <div className="sheet-nav">
