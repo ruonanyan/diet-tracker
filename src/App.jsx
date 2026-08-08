@@ -84,8 +84,9 @@ const GLOBAL_CSS = `
   /* Sheet overlay */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 10; transition: opacity 0.3s ease; }
   .overlay.hidden { opacity: 0; }
-  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 20; padding: 0 1.25rem 2.5rem; max-height: 82vh; overflow-y: auto; box-shadow: 0 -4px 24px rgba(0,0,0,0.1); }
-  .sheet-handle { width: 36px; height: 4px; background: #d6cfc4; border-radius: 2px; margin: 0.75rem auto 1.25rem; cursor: grab; touch-action: none; }
+  .sheet { position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-radius: 16px 16px 0 0; z-index: 20; max-height: 82vh; overflow: hidden; box-shadow: 0 -4px 24px rgba(0,0,0,0.1); }
+  .sheet-handle { width: 36px; height: 4px; background: #d6cfc4; border-radius: 2px; margin: 0.75rem auto 0.75rem; cursor: grab; touch-action: none; flex-shrink: 0; }
+  .sheet-panel { min-width: 100%; box-sizing: border-box; padding: 0 1.25rem 2.5rem; overflow-y: auto; max-height: calc(82vh - 36px); }
   .sheet-date { font-family: 'Playfair Display', Georgia, serif; font-size: 1.15rem; font-style: italic; color: #2c2418; margin-bottom: 0.9rem; }
   .sheet-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.9rem; }
   .sheet-nav-btn { font-family: 'DM Mono', monospace; background: none; border: none; cursor: pointer; font-size: 1.2rem; color: #9a8f7e; padding: 0 0.4rem; }
@@ -305,7 +306,8 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
   const [entries, setEntries] = useState([]);
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [addModal, setAddModal] = useState(null); // "food" | "workout"
+  const [subPage, setSubPage] = useState(null); // null | "food" | "workout"
+  const [subPageActive, setSubPageActive] = useState(false);
   const [open, setOpen] = useState(false);
   const sheetRef = useRef(null);
   const dragStartY = useRef(null);
@@ -317,6 +319,16 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
   function closeSheet() {
     setOpen(false);
     setTimeout(onClose, 320);
+  }
+
+  function openSubPage(type) {
+    setSubPage(type);
+    requestAnimationFrame(() => setSubPageActive(true));
+  }
+
+  function closeSubPage() {
+    setSubPageActive(false);
+    setTimeout(() => setSubPage(null), 320);
   }
 
   function onTouchStart(e) {
@@ -360,7 +372,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
   const totalCals = entries.reduce((s, e) => s + (e.calories || 0), 0);
   const totalProtein = entries.reduce((s, e) => s + (e.protein || 0), 0);
   const burn = TDEE + (workout ? workout.burn_value : 0);
-  const deficit = burn - totalCals; // positive = good
+  const deficit = burn - totalCals;
 
   const grouped = {};
   for (const e of entries) {
@@ -383,85 +395,97 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
       <div className="sheet" ref={sheetRef} style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)" }}>
         <div className="sheet-handle"
           onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd} />
-        <div className="sheet-nav">
-          <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
-          <div className="sheet-date">{displayFull(date)}</div>
-          <button className="sheet-nav-btn" disabled={date >= today} onClick={() => setDate(d => shiftDate(d, 1))}>›</button>
-        </div>
 
-        {/* Stat cards */}
-        <div className="sheet-stats">
-          <div className="stat-card">
-            <div className="stat-label">Eaten</div>
-            <div className="stat-val amber">{totalCals.toLocaleString()}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Burn</div>
-            <div className="stat-val amber">{burn.toLocaleString()}</div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Deficit</div>
-            <div className={`stat-val ${deficit >= 0 ? "green" : "red"}`}>
-              {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
-            </div>
-          </div>
-          <div className="stat-card">
-            <div className="stat-label">Protein</div>
-            <div className="stat-val">{totalProtein}g</div>
-            <div className="stat-sub">{PROTEIN_TARGET}–{PROTEIN_TARGET + 10}g</div>
-          </div>
-        </div>
+        {/* Horizontal slide container */}
+        <div style={{ overflow: "hidden" }}>
+          <div style={{ display: "flex", transform: subPageActive ? "translateX(-50%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
 
-        {/* Workout */}
-        {workout ? (
-          <div className="workout-row">
-            <span className="workout-label">💪 +{workout.burn_value} cal{workout.notes ? ` · ${workout.notes}` : ""}</span>
-            <button className="workout-edit-btn" onClick={() => setAddModal("workout")}>Edit</button>
-          </div>
-        ) : (
-          <button className="log-workout-btn" onClick={() => setAddModal("workout")}>+ Log Workout</button>
-        )}
-
-        {/* Food entries */}
-        {loading ? (
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "0.75rem 0" }}>Loading…</div>
-        ) : (
-          <>
-            {entries.length > 0 && <div className="section-label">Food Entries</div>}
-            {activeMeals.map(meal => (
-              <div key={meal}>
-                {showMealLabels && <div className="meal-label">{meal}</div>}
-                {grouped[meal].map(e => (
-                  <div key={e.id} className="sheet-entry">
-                    <div className="sheet-name">{e.item}</div>
-                    <span className="sheet-protein">{e.protein}g</span>
-                    <span className="sheet-cal">{e.calories}</span>
-                    <button className="sheet-del" onClick={() => deleteEntry(e.id)}>×</button>
-                  </div>
-                ))}
+            {/* Panel 1: Main content */}
+            <div className="sheet-panel">
+              <div className="sheet-nav">
+                <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
+                <div className="sheet-date">{displayFull(date)}</div>
+                <button className="sheet-nav-btn" disabled={date >= today} onClick={() => setDate(d => shiftDate(d, 1))}>›</button>
               </div>
-            ))}
-            {entries.length === 0 && <div className="sheet-empty">No entries yet</div>}
-          </>
-        )}
 
-        <button className="sheet-add-btn" onClick={() => setAddModal("food")}>+ Add Entry</button>
+              <div className="sheet-stats">
+                <div className="stat-card">
+                  <div className="stat-label">Eaten</div>
+                  <div className="stat-val amber">{totalCals.toLocaleString()}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Burn</div>
+                  <div className="stat-val amber">{burn.toLocaleString()}</div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Deficit</div>
+                  <div className={`stat-val ${deficit >= 0 ? "green" : "red"}`}>
+                    {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
+                  </div>
+                </div>
+                <div className="stat-card">
+                  <div className="stat-label">Protein</div>
+                  <div className="stat-val">{totalProtein}g</div>
+                  <div className="stat-sub">{PROTEIN_TARGET}–{PROTEIN_TARGET + 10}g</div>
+                </div>
+              </div>
+
+              {workout ? (
+                <div className="workout-row">
+                  <span className="workout-label">💪 +{workout.burn_value} cal{workout.notes ? ` · ${workout.notes}` : ""}</span>
+                  <button className="workout-edit-btn" onClick={() => openSubPage("workout")}>Edit</button>
+                </div>
+              ) : (
+                <button className="log-workout-btn" onClick={() => openSubPage("workout")}>+ Log Workout</button>
+              )}
+
+              {loading ? (
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "0.75rem 0" }}>Loading…</div>
+              ) : (
+                <>
+                  {entries.length > 0 && <div className="section-label">Food Entries</div>}
+                  {activeMeals.map(meal => (
+                    <div key={meal}>
+                      {showMealLabels && <div className="meal-label">{meal}</div>}
+                      {grouped[meal].map(e => (
+                        <div key={e.id} className="sheet-entry">
+                          <div className="sheet-name">{e.item}</div>
+                          <span className="sheet-protein">{e.protein}g</span>
+                          <span className="sheet-cal">{e.calories}</span>
+                          <button className="sheet-del" onClick={() => deleteEntry(e.id)}>×</button>
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                  {entries.length === 0 && <div className="sheet-empty">No entries yet</div>}
+                </>
+              )}
+
+              <button className="sheet-add-btn" onClick={() => openSubPage("food")}>+ Add Entry</button>
+            </div>
+
+            {/* Panel 2: Sub-page form */}
+            <div className="sheet-panel">
+              <button className="back-link" onClick={closeSubPage} style={{ marginBottom: "1.25rem" }}>← Back</button>
+              {subPage === "food" && (
+                <AddFormContent date={date} frequentFoods={frequentFoods}
+                  onSaved={() => { closeSubPage(); fetchDay(date); }} />
+              )}
+              {subPage === "workout" && (
+                <WorkoutFormContent date={date} existing={workout}
+                  onSaved={() => { closeSubPage(); fetchDay(date); }} />
+              )}
+            </div>
+
+          </div>
+        </div>
       </div>
-
-      {addModal === "food" && (
-        <AddModal date={date} frequentFoods={frequentFoods}
-          onClose={() => setAddModal(null)} onSaved={() => { setAddModal(null); fetchDay(date); }} />
-      )}
-      {addModal === "workout" && (
-        <WorkoutModal date={date} existing={workout}
-          onClose={() => setAddModal(null)} onSaved={() => { setAddModal(null); fetchDay(date); }} />
-      )}
     </>
   );
 }
 
-// ─── Add Food Modal ───────────────────────────────────────────────────────────
-function AddModal({ date, frequentFoods, onClose, onSaved }) {
+// ─── Add Food Form Content ────────────────────────────────────────────────────
+function AddFormContent({ date, frequentFoods, onSaved }) {
   const [tab, setTab] = useState("frequent");
   const [mealTime, setMealTime] = useState("lunch");
   const [search, setSearch] = useState("");
@@ -503,98 +527,85 @@ function AddModal({ date, frequentFoods, onClose, onSaved }) {
 
   return (
     <>
-      <div className="overlay" style={{ zIndex: 30 }} onClick={onClose} />
-      <div className="sheet" style={{ zIndex: 40 }}>
-        <div className="sheet-handle" />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <div className="section-label" style={{ margin: 0 }}>Add Entry</div>
-          <button className="sheet-del" onClick={onClose} style={{ fontSize: "1.3rem" }}>×</button>
-        </div>
+      <div className="section-label" style={{ marginBottom: "0.75rem" }}>Add Entry</div>
 
-        <div className="section-label">Meal Time</div>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "1rem" }}>
-          {MEAL_TIMES.map(t => (
-            <button key={t} onClick={() => setMealTime(t)}
-              style={{ padding: "0.28rem 0.65rem", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", background: mealTime === t ? "#3d3228" : "#e8e2d8", color: mealTime === t ? "#fff" : "#6b5f52" }}>
-              {t}
-            </button>
-          ))}
-        </div>
-
-        <div style={{ display: "flex", borderRadius: 4, overflow: "hidden", border: "1px solid #d8d0c4", marginBottom: "1rem" }}>
-          {[["frequent", "Frequent Foods"], ["custom", "Custom"]].map(([t, lbl]) => (
-            <button key={t} onClick={() => setTab(t)}
-              style={{ flex: 1, padding: "0.5rem", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", fontWeight: tab === t ? 600 : 400, background: tab === t ? "#3d3228" : "#faf9f7", color: tab === t ? "#fff" : "#9a8f7e" }}>
-              {lbl}
-            </button>
-          ))}
-        </div>
-
-        {tab === "frequent" ? (
-          <>
-            <div className="form" style={{ background: "transparent", border: "none", padding: 0 }}>
-              <input placeholder="Search foods…" value={search}
-                onChange={e => { setSearch(e.target.value); setSelected(null); }}
-                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.5rem 0.65rem", borderRadius: 4, width: "100%", outline: "none" }} autoFocus />
-            </div>
-            <div style={{ maxHeight: 220, overflowY: "auto", margin: "0.5rem 0 0.75rem" }}>
-              {filtered.length === 0 ? (
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "1rem 0", textAlign: "center" }}>No results</div>
-              ) : filtered.map(f => (
-                <div key={f.id} onClick={() => { setSelected(f); setServings("1"); }}
-                  style={{ padding: "0.55rem 0.65rem", borderRadius: 4, marginBottom: "0.25rem", cursor: "pointer", background: selected?.id === f.id ? "#eee9e0" : "#fff", border: `1px solid ${selected?.id === f.id ? "#b89880" : "transparent"}` }}>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", color: "#3d3228" }}>{f.name}</div>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#b5a898", marginTop: "0.1rem" }}>
-                    {f.serving && <>{f.serving} · </>}{f.calories} cal · {f.protein}g protein
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {selected && (
-              <div style={{ background: "#f0ebe3", borderRadius: 4, padding: "0.65rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.65rem" }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", flex: 1 }}>{selected.name}</div>
-                <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.63rem", color: "#9a8f7e" }}>×</label>
-                <input type="number" value={servings} onChange={e => setServings(e.target.value)}
-                  min="0.25" max="20" step="0.25" style={{ width: 60, fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", border: "1px solid #d6cfc4", borderRadius: 2, padding: "0.25rem 0.4rem", background: "#fff", textAlign: "right" }} />
-                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#b07d3a", whiteSpace: "nowrap" }}>{previewCal} cal · {previewProt}g</span>
-              </div>
-            )}
-            <div className="form-actions">
-              <button className="btn-cancel" onClick={onClose}>Cancel</button>
-              <button className="btn-primary" onClick={logFrequent} disabled={!selected || saving}
-                style={{ opacity: (!selected || saving) ? 0.4 : 1 }}>
-                {saving ? "Saving…" : "Log"}
-              </button>
-            </div>
-          </>
-        ) : (
-          <>
-            <div className="form">
-              <input placeholder="Description*" value={custom.item}
-                onChange={e => { setCustom(p => ({ ...p, item: e.target.value })); setError(""); }} autoFocus />
-              <div className="form-row">
-                {[["calories", "Cal"], ["protein", "Protein (g)"], ["carbs", "Carbs (g)"], ["fat", "Fat (g)"]].map(([k, lbl]) => (
-                  <input key={k} type="number" placeholder={lbl} value={custom[k]}
-                    onChange={e => setCustom(p => ({ ...p, [k]: e.target.value }))} min="0" />
-                ))}
-              </div>
-              {error && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#c0392b" }}>{error}</div>}
-              <div className="form-actions">
-                <button className="btn-cancel" onClick={onClose}>Cancel</button>
-                <button className="btn-primary" onClick={logCustom} disabled={saving}
-                  style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
-              </div>
-            </div>
-          </>
-        )}
+      <div className="section-label">Meal Time</div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "1rem" }}>
+        {MEAL_TIMES.map(t => (
+          <button key={t} onClick={() => setMealTime(t)}
+            style={{ padding: "0.28rem 0.65rem", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", background: mealTime === t ? "#3d3228" : "#e8e2d8", color: mealTime === t ? "#fff" : "#6b5f52" }}>
+            {t}
+          </button>
+        ))}
       </div>
+
+      <div style={{ display: "flex", borderRadius: 4, overflow: "hidden", border: "1px solid #d8d0c4", marginBottom: "1rem" }}>
+        {[["frequent", "Frequent Foods"], ["custom", "Custom"]].map(([t, lbl]) => (
+          <button key={t} onClick={() => setTab(t)}
+            style={{ flex: 1, padding: "0.5rem", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", fontWeight: tab === t ? 600 : 400, background: tab === t ? "#3d3228" : "#faf9f7", color: tab === t ? "#fff" : "#9a8f7e" }}>
+            {lbl}
+          </button>
+        ))}
+      </div>
+
+      {tab === "frequent" ? (
+        <>
+          <input placeholder="Search foods…" value={search}
+            onChange={e => { setSearch(e.target.value); setSelected(null); }}
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.5rem 0.65rem", borderRadius: 4, width: "100%", outline: "none", marginBottom: "0.5rem" }} autoFocus />
+          <div style={{ maxHeight: 200, overflowY: "auto", marginBottom: "0.75rem" }}>
+            {filtered.length === 0 ? (
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "1rem 0", textAlign: "center" }}>No results</div>
+            ) : filtered.map(f => (
+              <div key={f.id} onClick={() => { setSelected(f); setServings("1"); }}
+                style={{ padding: "0.55rem 0.65rem", borderRadius: 4, marginBottom: "0.25rem", cursor: "pointer", background: selected?.id === f.id ? "#eee9e0" : "#fff", border: `1px solid ${selected?.id === f.id ? "#b89880" : "transparent"}` }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", color: "#3d3228" }}>{f.name}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#b5a898", marginTop: "0.1rem" }}>
+                  {f.serving && <>{f.serving} · </>}{f.calories} cal · {f.protein}g protein
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {selected && (
+            <div style={{ background: "#f0ebe3", borderRadius: 4, padding: "0.65rem", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.65rem" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", flex: 1 }}>{selected.name}</div>
+              <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.63rem", color: "#9a8f7e" }}>×</label>
+              <input type="number" value={servings} onChange={e => setServings(e.target.value)}
+                min="0.25" max="20" step="0.25" style={{ width: 60, fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", border: "1px solid #d6cfc4", borderRadius: 2, padding: "0.25rem 0.4rem", background: "#fff", textAlign: "right" }} />
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#b07d3a", whiteSpace: "nowrap" }}>{previewCal} cal · {previewProt}g</span>
+            </div>
+          )}
+          <div className="form-actions">
+            <button className="btn-primary" onClick={logFrequent} disabled={!selected || saving}
+              style={{ opacity: (!selected || saving) ? 0.4 : 1 }}>
+              {saving ? "Saving…" : "Log"}
+            </button>
+          </div>
+        </>
+      ) : (
+        <div className="form">
+          <input placeholder="Description*" value={custom.item}
+            onChange={e => { setCustom(p => ({ ...p, item: e.target.value })); setError(""); }} autoFocus />
+          <div className="form-row">
+            {[["calories", "Cal"], ["protein", "Protein (g)"], ["carbs", "Carbs (g)"], ["fat", "Fat (g)"]].map(([k, lbl]) => (
+              <input key={k} type="number" placeholder={lbl} value={custom[k]}
+                onChange={e => setCustom(p => ({ ...p, [k]: e.target.value }))} min="0" />
+            ))}
+          </div>
+          {error && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#c0392b" }}>{error}</div>}
+          <div className="form-actions">
+            <button className="btn-primary" onClick={logCustom} disabled={saving}
+              style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-// ─── Workout Modal ────────────────────────────────────────────────────────────
-function WorkoutModal({ date, existing, onClose, onSaved }) {
+// ─── Workout Form Content ─────────────────────────────────────────────────────
+function WorkoutFormContent({ date, existing, onSaved }) {
   const [burnValue, setBurnValue] = useState(existing ? String(existing.burn_value) : "");
   const [notes, setNotes] = useState(existing?.notes || "");
   const [saving, setSaving] = useState(false);
@@ -626,52 +637,44 @@ function WorkoutModal({ date, existing, onClose, onSaved }) {
 
   return (
     <>
-      <div className="overlay" style={{ zIndex: 30 }} onClick={onClose} />
-      <div className="sheet" style={{ zIndex: 40 }}>
-        <div className="sheet-handle" />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1rem" }}>
-          <div className="section-label" style={{ margin: 0 }}>{existing ? "Edit Workout" : "Log Workout"}</div>
-          <button className="sheet-del" onClick={onClose} style={{ fontSize: "1.3rem" }}>×</button>
-        </div>
+      <div className="section-label" style={{ marginBottom: "0.75rem" }}>{existing ? "Edit Workout" : "Log Workout"}</div>
 
-        <div className="wk-form">
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#5a9b64", marginBottom: "0.5rem" }}>
-            Karvonen HR zones (minutes)
-          </div>
-          <div className="wk-karvonen">
-            {[["Peak ~168bpm", peak, setPeak], ["Vigorous ~149", vigorous, setVigorous], ["Moderate ~115", moderate, setModerate]].map(([lbl, val, set]) => (
-              <div key={lbl}>
-                <label className="wk-label" style={{ fontSize: "0.57rem" }}>{lbl}</label>
-                <input type="number" value={val} onChange={e => set(e.target.value)} placeholder="0" min="0" className="wk-input" />
-              </div>
-            ))}
-          </div>
-          <button className="wk-calc-btn" onClick={calcKarvonen}>→ Calculate burn</button>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#9a8f7e", marginTop: "0.45rem" }}>
-            Peak ×8.99 + Vigorous ×6.95 + Moderate ×3.32, ×1.10 EPOC
-          </div>
+      <div className="wk-form">
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#5a9b64", marginBottom: "0.5rem" }}>
+          Karvonen HR zones (minutes)
         </div>
+        <div className="wk-karvonen">
+          {[["Peak ~168bpm", peak, setPeak], ["Vigorous ~149", vigorous, setVigorous], ["Moderate ~115", moderate, setModerate]].map(([lbl, val, set]) => (
+            <div key={lbl}>
+              <label className="wk-label" style={{ fontSize: "0.57rem" }}>{lbl}</label>
+              <input type="number" value={val} onChange={e => set(e.target.value)} placeholder="0" min="0" className="wk-input" />
+            </div>
+          ))}
+        </div>
+        <button className="wk-calc-btn" onClick={calcKarvonen}>→ Calculate burn</button>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#9a8f7e", marginTop: "0.45rem" }}>
+          Peak ×8.99 + Vigorous ×6.95 + Moderate ×3.32, ×1.10 EPOC
+        </div>
+      </div>
 
-        <div className="form" style={{ background: "transparent", border: "none", padding: 0, marginBottom: "0.5rem" }}>
-          <div>
-            <label className="wk-label">Extra burn (cal above TDEE {TDEE})</label>
-            <input type="number" value={burnValue} onChange={e => setBurnValue(e.target.value)}
-              placeholder="e.g. 400" className="wk-input" />
-          </div>
-          <div>
-            <label className="wk-label">Notes (optional)</label>
-            <input value={notes} onChange={e => setNotes(e.target.value)}
-              placeholder="e.g. 45 min upper body + 2km run" className="wk-input" />
-          </div>
+      <div className="form" style={{ background: "transparent", border: "none", padding: 0, marginBottom: "0.5rem" }}>
+        <div>
+          <label className="wk-label">Extra burn (cal above TDEE {TDEE})</label>
+          <input type="number" value={burnValue} onChange={e => setBurnValue(e.target.value)}
+            placeholder="e.g. 400" className="wk-input" />
         </div>
+        <div>
+          <label className="wk-label">Notes (optional)</label>
+          <input value={notes} onChange={e => setNotes(e.target.value)}
+            placeholder="e.g. 45 min upper body + 2km run" className="wk-input" />
+        </div>
+      </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
-          <button className="wk-save-btn" onClick={save} disabled={!burnValue || saving}>
-            {saving ? "Saving…" : existing ? "Update" : "Log Workout"}
-          </button>
-          {existing && <button className="wk-delete-btn" onClick={remove}>Delete</button>}
-          <button className="btn-cancel" onClick={onClose}>Cancel</button>
-        </div>
+      <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.75rem" }}>
+        <button className="wk-save-btn" onClick={save} disabled={!burnValue || saving}>
+          {saving ? "Saving…" : existing ? "Update" : "Log Workout"}
+        </button>
+        {existing && <button className="wk-delete-btn" onClick={remove}>Delete</button>}
       </div>
     </>
   );
