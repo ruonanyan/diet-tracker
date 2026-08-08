@@ -398,7 +398,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
 
         {/* Horizontal slide container */}
         <div style={{ overflow: "hidden" }}>
-          <div style={{ display: "flex", transform: subPageActive ? "translateX(-50%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
+          <div style={{ display: "flex", transform: subPageActive ? "translateX(-100%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
 
             {/* Panel 1: Main content */}
             <div className="sheet-panel">
