@@ -398,10 +398,10 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
 
         {/* Horizontal slide container */}
         <div style={{ overflow: "hidden" }}>
-          <div style={{ display: "flex", transform: subPageActive ? "translateX(-100%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
+          <div style={{ display: "flex", width: "200%", transform: subPageActive ? "translateX(-50%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
 
             {/* Panel 1: Main content */}
-            <div className="sheet-panel">
+            <div className="sheet-panel" style={{ width: "50%" }}>
               <div className="sheet-nav">
                 <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
                 <div className="sheet-date">{displayFull(date)}</div>
@@ -465,7 +465,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
             </div>
 
             {/* Panel 2: Sub-page form */}
-            <div className="sheet-panel">
+            <div className="sheet-panel" style={{ width: "50%" }}>
               <button className="back-link" onClick={closeSubPage} style={{ marginBottom: "1.25rem" }}>← Back</button>
               {subPage === "food" && (
                 <AddFormContent date={date} frequentFoods={frequentFoods}
