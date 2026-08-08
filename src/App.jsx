@@ -552,7 +552,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
         <>
           <input placeholder="Search foods…" value={search}
             onChange={e => { setSearch(e.target.value); setSelected(null); }}
-            style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.5rem 0.65rem", borderRadius: 4, width: "100%", outline: "none", marginBottom: "0.5rem" }} autoFocus />
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.5rem 0.65rem", borderRadius: 4, width: "100%", outline: "none", marginBottom: "0.5rem" }} />
           <div style={{ maxHeight: 200, overflowY: "auto", marginBottom: "0.75rem" }}>
             {filtered.length === 0 ? (
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "1rem 0", textAlign: "center" }}>No results</div>
@@ -586,7 +586,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
       ) : (
         <div className="form">
           <input placeholder="Description*" value={custom.item}
-            onChange={e => { setCustom(p => ({ ...p, item: e.target.value })); setError(""); }} autoFocus />
+            onChange={e => { setCustom(p => ({ ...p, item: e.target.value })); setError(""); }} />
           <div className="form-row">
             {[["calories", "Cal"], ["protein", "Protein (g)"], ["carbs", "Carbs (g)"], ["fat", "Fat (g)"]].map(([k, lbl]) => (
               <input key={k} type="number" placeholder={lbl} value={custom[k]}
