@@ -682,7 +682,8 @@ export default function DietTracker() {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify(log)); } catch {}
   }, [log]);
   const [sheetDate, setSheetDate] = useState(null);
-  const [sheetPage, setSheetPage] = useState(null); // null='main' | 'entry' | 'workout'
+  const [adding, setAdding] = useState(false);
+  const [editingWorkout, setEditingWorkout] = useState(false);
   const [showRules, setShowRules] = useState(false);
   const [showFrequent, setShowFrequent] = useState(false);
   const [showSmoothie, setShowSmoothie] = useState(false);
@@ -729,7 +730,7 @@ export default function DietTracker() {
     };
     saveLog(updated);
     setForm(EMPTY_ENTRY);
-    setSheetPage(null);
+    setAdding(false);
   }
 
   function removeEntry(date, id) {
@@ -738,9 +739,9 @@ export default function DietTracker() {
 
   function saveWorkoutBurn() {
     const val = Number(workoutInput);
-    if (!val || !sheetDate) { setSheetPage(null); return; }
+    if (!val || !sheetDate) { setEditingWorkout(false); return; }
     saveWorkouts({ ...workouts, [sheetDate]: val });
-    setSheetPage(null);
+    setEditingWorkout(false);
     setWorkoutInput("");
   }
 
@@ -906,11 +907,6 @@ export default function DietTracker() {
         .sheet-empty { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #d6cfc4; text-align: center; padding: 1.5rem 0; }
         .sheet-add-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; border: 1px solid #d6cfc4; color: #9a8f7e; padding: 0.5rem 1rem; cursor: pointer; border-radius: 2px; margin-top: 1rem; }
         .sheet-add-btn:hover { border-color: #b07d3a; color: #b07d3a; }
-        .sheet-back { font-family: 'DM Mono', monospace; font-size: 0.72rem; letter-spacing: 0.06em; color: #9a8f7e; background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 1.25rem; display: inline-flex; align-items: center; gap: 0.3rem; }
-        .sheet-back:hover { color: #3d3228; }
-        .sheet-page { animation: slideInRight 0.2s ease; }
-        @keyframes slideInRight { from { transform: translateX(18px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .sheet-action-row { display: flex; gap: 0.6rem; margin-top: 1.25rem; flex-wrap: wrap; }
         .form { background: #f7f4ef; border: 1px solid #e8e2d8; border-radius: 3px; padding: 1rem; margin-top: 0.75rem; display: grid; gap: 0.65rem; }
         .form input, .form select { font-family: 'DM Mono', monospace; font-size: 0.78rem; background: #fff; border: 1px solid #d6cfc4; color: #2c2418; padding: 0.5rem 0.65rem; border-radius: 2px; width: 100%; }
         .form input:focus, .form select:focus { outline: none; border-color: #b07d3a; }
@@ -1250,7 +1246,7 @@ export default function DietTracker() {
               const totalBurn = TDEE + burnAdj;
               const deficit = totalBurn - t.calories;
               return (
-                <tr key={d} onClick={() => { setSheetDate(d); setSheetPage(null); setShowWorkoutDetails(false); }}>
+                <tr key={d} onClick={() => { setSheetDate(d); setAdding(false); setEditingWorkout(false); setShowWorkoutDetails(false); }}>
                   <td>
                     <span className="date-str">{new Date(d + "T00:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
                   </td>
@@ -1284,112 +1280,93 @@ export default function DietTracker() {
 
       {sheetDate && (
         <>
-          <div className="overlay" onClick={() => { setSheetDate(null); setSheetPage(null); }} />
+          <div className="overlay" onClick={() => { setSheetDate(null); setAdding(false); setEditingWorkout(false); }} />
           <div className="sheet">
             <div className="sheet-handle" />
+            <div className="sheet-date">{formatDate(sheetDate)}</div>
 
-            {sheetPage === null ? (
-              /* ── Main view ── */
-              <>
-                <div className="sheet-date">{formatDate(sheetDate)}</div>
-
-                <div className="sheet-stats">
-                  <div className="stat-card">
-                    <div className="stat-label">Eaten</div>
-                    <div className="stat-val amber">{sheetTotals.calories}</div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-label">Burn</div>
-                    <div className="stat-val" style={{color:"#3a7d44"}}>{sheetTotalBurn.toLocaleString()}</div>
-                    {sheetWorkout > 0 && <div style={{fontSize:"10px",marginTop:"2px"}}>💪 {sheetWorkoutAdj} (workout, incl. +10% EPOC)</div>}
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-label">Deficit</div>
-                    <div className={`stat-val ${sheetDeficit >= 0 ? "green" : "red"}`}>
-                      {sheetDeficit >= 0 ? "−" : "+"}{Math.abs(sheetDeficit)}
-                    </div>
-                  </div>
-                  <div className="stat-card">
-                    <div className="stat-label">Protein</div>
-                    <div className="stat-val">{sheetTotals.protein}g</div>
-                    <div className="stat-sub">120–130g</div>
-                  </div>
+            <div className="sheet-stats">
+              <div className="stat-card">
+                <div className="stat-label">Eaten</div>
+                <div className="stat-val amber">{sheetTotals.calories}</div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Burn</div>
+                <div className="stat-val" style={{color:"#3a7d44"}}>{sheetTotalBurn.toLocaleString()}</div>
+                {sheetWorkout > 0 && <div style={{fontSize:"10px",marginTop:"2px"}}>💪 {sheetWorkoutAdj} (workout, incl. +10% EPOC)</div>}
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Deficit</div>
+                <div className={`stat-val ${sheetDeficit >= 0 ? "green" : "red"}`}>
+                  {sheetDeficit >= 0 ? "−" : "+"}{Math.abs(sheetDeficit)}
                 </div>
+              </div>
+              <div className="stat-card">
+                <div className="stat-label">Protein</div>
+                <div className="stat-val">{sheetTotals.protein}g</div>
+                <div className="stat-sub">120–130g</div>
+              </div>
+            </div>
 
-                {sheetWorkout > 0 && (
-                  <div style={{marginBottom:"1.25rem"}}>
-                    <div className="workout-row" style={{borderRadius: showWorkoutDetails ? "6px 6px 0 0" : "6px", marginBottom: 0}}>
-                      <span className="workout-label">🏋️ Workout burn: {sheetWorkoutAdj} kcal (incl. EPOC)</span>
-                      <button className="workout-edit" onClick={() => setShowWorkoutDetails(v => !v)}>
-                        {showWorkoutDetails ? "hide" : "details"}
-                      </button>
-                    </div>
-                    {showWorkoutDetails && (
-                      <div className="workout-details">
-                        {(WORKOUT_DETAILS[sheetDate] || [{ name: "Workout session", calories: sheetWorkout }]).map((item, i) => (
-                          <div className="workout-detail-row" key={i}>
-                            <span>{item.name}</span>
-                            <span>{item.calories} kcal</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                <div className="section-label">Food entries</div>
-                {sheetEntries.length === 0 && <div className="sheet-empty">No entries yet</div>}
-                {sheetEntries.map(e => (
-                  <div className="sheet-entry" key={e.id}>
-                    <span className="sheet-name">{e.item}</span>
-                    <span className="sheet-protein">{e.protein}g</span>
-                    <span className="sheet-cal">{e.calories}</span>
-                    <button className="sheet-del" onClick={() => removeEntry(sheetDate, e.id)}>×</button>
-                  </div>
-                ))}
-
-                <div className="sheet-action-row">
-                  <button className="sheet-add-btn" style={{marginTop:0}} onClick={() => setSheetPage('entry')}>+ Log entry</button>
-                  <button className="sheet-add-btn" style={{marginTop:0}} onClick={() => { setWorkoutInput(sheetWorkout ? String(sheetWorkout) : ""); setSheetPage('workout'); }}>
-                    {sheetWorkout > 0 ? "Edit workout" : "+ Log workout"}
+            {sheetWorkout > 0 ? (
+              <div style={{marginBottom:"1.25rem"}}>
+                <div className="workout-row" style={{borderRadius: showWorkoutDetails ? "6px 6px 0 0" : "6px", marginBottom: 0}}>
+                  <span className="workout-label">🏋️ Workout burn: {sheetWorkoutAdj} kcal (incl. EPOC)</span>
+                  <button className="workout-edit" onClick={() => setShowWorkoutDetails(v => !v)}>
+                    {showWorkoutDetails ? "hide details" : "view details"}
                   </button>
                 </div>
-              </>
-            ) : sheetPage === 'entry' ? (
-              /* ── Entry form page ── */
-              <div className="sheet-page">
-                <button className="sheet-back" onClick={() => { setSheetPage(null); setForm(EMPTY_ENTRY); }}>← back</button>
-                <div className="form">
-                  <input placeholder="Food item" value={form.item} onChange={e => setForm(f => ({ ...f, item: e.target.value }))} />
-                  <select value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))}>
-                    {TIMES.map(t => <option key={t}>{t}</option>)}
-                  </select>
-                  <div className="form-row">
-                    <input placeholder="Cal" type="number" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} />
-                    <input placeholder="P g" type="number" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} />
-                    <input placeholder="C g" type="number" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} />
-                    <input placeholder="F g" type="number" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} />
+                {showWorkoutDetails && (
+                  <div className="workout-details">
+                    {(WORKOUT_DETAILS[sheetDate] || [{ name: "Workout session", calories: sheetWorkout }]).map((item, i) => (
+                      <div className="workout-detail-row" key={i}>
+                        <span>{item.name}</span>
+                        <span>{item.calories} kcal</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="form-actions">
-                    <button className="btn-cancel" onClick={() => { setSheetPage(null); setForm(EMPTY_ENTRY); }}>Cancel</button>
-                    <button className="btn-primary" onClick={addEntry}>Save</button>
-                  </div>
+                )}
+              </div>
+            ) : editingWorkout ? (
+              <div className="workout-row" style={{marginBottom:"1.25rem"}}>
+                <span className="workout-label">Workout burn (kcal):</span>
+                <input className="workout-input" type="number" placeholder="e.g. 335" value={workoutInput} onChange={e => setWorkoutInput(e.target.value)} />
+                <button className="workout-save" onClick={saveWorkoutBurn}>Save</button>
+              </div>
+            ) : (
+              <button className="sheet-add-btn" style={{marginTop:0, marginBottom:"1.25rem"}} onClick={() => { setEditingWorkout(true); setWorkoutInput(""); }}>+ Log workout</button>
+            )}
+
+            <div className="section-label">Food entries</div>
+            {sheetEntries.length === 0 && <div className="sheet-empty">No entries yet</div>}
+            {sheetEntries.map(e => (
+              <div className="sheet-entry" key={e.id}>
+                <span className="sheet-name">{e.item}</span>
+                <span className="sheet-protein">{e.protein}g</span>
+                <span className="sheet-cal">{e.calories}</span>
+                <button className="sheet-del" onClick={() => removeEntry(sheetDate, e.id)}>×</button>
+              </div>
+            ))}
+
+            {!adding && <button className="sheet-add-btn" onClick={() => setAdding(true)}>+ Add entry</button>}
+            {adding && (
+              <div className="form">
+                <input placeholder="Food item" value={form.item} onChange={e => setForm(f => ({ ...f, item: e.target.value }))} />
+                <select value={form.time} onChange={e => setForm(f => ({ ...f, time: e.target.value }))}>
+                  {TIMES.map(t => <option key={t}>{t}</option>)}
+                </select>
+                <div className="form-row">
+                  <input placeholder="Cal" type="number" value={form.calories} onChange={e => setForm(f => ({ ...f, calories: e.target.value }))} />
+                  <input placeholder="P g" type="number" value={form.protein} onChange={e => setForm(f => ({ ...f, protein: e.target.value }))} />
+                  <input placeholder="C g" type="number" value={form.carbs} onChange={e => setForm(f => ({ ...f, carbs: e.target.value }))} />
+                  <input placeholder="F g" type="number" value={form.fat} onChange={e => setForm(f => ({ ...f, fat: e.target.value }))} />
+                </div>
+                <div className="form-actions">
+                  <button className="btn-cancel" onClick={() => { setAdding(false); setForm(EMPTY_ENTRY); }}>Cancel</button>
+                  <button className="btn-primary" onClick={addEntry}>Save</button>
                 </div>
               </div>
-            ) : sheetPage === 'workout' ? (
-              /* ── Workout form page ── */
-              <div className="sheet-page">
-                <button className="sheet-back" onClick={() => { setSheetPage(null); setWorkoutInput(""); }}>← back</button>
-                <div className="form">
-                  <div style={{fontFamily:"'DM Mono',monospace", fontSize:"0.78rem", color:"#6b5f52", marginBottom:"0.25rem"}}>Workout burn (avg kcal, pre-EPOC)</div>
-                  <input className="workout-input" style={{width:"100%"}} type="number" placeholder="e.g. 335" value={workoutInput} onChange={e => setWorkoutInput(e.target.value)} />
-                  <div className="form-actions">
-                    <button className="btn-cancel" onClick={() => { setSheetPage(null); setWorkoutInput(""); }}>Cancel</button>
-                    <button className="btn-primary" onClick={saveWorkoutBurn}>Save</button>
-                  </div>
-                </div>
-              </div>
-            ) : null}
+            )}
           </div>
         </>
       )}
