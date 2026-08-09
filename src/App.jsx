@@ -242,8 +242,9 @@ export default function App() {
           <button className="rules-link" onClick={() => setPage("calc")}>Calculation rule</button>
           <button className="rules-link" onClick={() => setPage("frequent")}>Frequently eat</button>
           <button className="rules-link" onClick={() => setPage("smoothie")}>Smoothie calculator</button>
-          <button className="log-today-btn" onClick={() => openDay(today)}>+ Log today</button>
         </div>
+
+        <HomeAIBox onLogged={fetchHome} />
 
         {loading ? (
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#b5a898" }}>Loading…</div>
@@ -667,7 +668,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
             </button>
           </div>
         </>
-      ) : (
+      ) : tab === "custom" ? (
         <div className="form">
           <input placeholder="Description*" value={custom.item}
             onChange={e => { setCustom(p => ({ ...p, item: e.target.value })); setError(""); }} />
@@ -683,8 +684,114 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
               style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
           </div>
         </div>
-      )}
+      ) : null}
     </>
+  );
+}
+
+// ─── Home AI Box ──────────────────────────────────────────────────────────────
+function HomeAIBox({ onLogged }) {
+  const today = fmtDate(new Date());
+  const [aiText, setAiText] = useState("");
+  const [aiResult, setAiResult] = useState(null);
+  const [parsing, setParsing] = useState(false);
+  const [aiError, setAiError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [mealTime, setMealTime] = useState("dinner");
+  const [date, setDate] = useState(today);
+
+  async function parseWithAI() {
+    if (!aiText.trim()) return;
+    setParsing(true);
+    setAiError("");
+    setAiResult(null);
+    try {
+      const res = await fetch('/api/parse-food', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: aiText.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to parse');
+      setAiResult(data);
+    } catch (e) {
+      setAiError(e.message);
+    }
+    setParsing(false);
+  }
+
+  async function logAiResult() {
+    if (!aiResult) return;
+    setSaving(true);
+    await supabase.from("food_log").insert({
+      date, time: mealTime,
+      item: aiResult.item,
+      calories: aiResult.calories || 0,
+      protein: aiResult.protein || 0,
+      carbs: aiResult.carbs || 0,
+      fat: aiResult.fat || 0,
+    });
+    setSaving(false);
+    setAiText("");
+    setAiResult(null);
+    onLogged();
+  }
+
+  return (
+    <div style={{ marginBottom: "1.5rem", background: "#fff", border: "1px solid #e8e2d8", borderRadius: 8, padding: "1rem 1.1rem" }}>
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#b5a898", marginBottom: "0.6rem" }}>✦ Quick Log</div>
+
+      <textarea
+        placeholder="Describe what you ate…"
+        value={aiText}
+        onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); }}
+        rows={2}
+        style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: "0.6rem" }}
+      />
+
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", flex: 1 }}>
+          {MEAL_TIMES.map(t => (
+            <button key={t} onClick={() => setMealTime(t)}
+              style={{ padding: "0.2rem 0.5rem", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", background: mealTime === t ? "#3d3228" : "#e8e2d8", color: mealTime === t ? "#fff" : "#6b5f52" }}>
+              {t}
+            </button>
+          ))}
+        </div>
+        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
+      </div>
+
+      <button
+        onClick={parseWithAI}
+        disabled={!aiText.trim() || parsing}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.45rem 1rem", borderRadius: 2, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
+        {parsing ? "Parsing…" : "✦ Parse"}
+      </button>
+
+      {aiError && (
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginTop: "0.5rem" }}>{aiError}</div>
+      )}
+
+      {aiResult && (
+        <div style={{ background: "#f0ebe3", borderRadius: 6, padding: "0.75rem", marginTop: "0.75rem" }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3d3228", marginBottom: "0.45rem", fontWeight: 600 }}>{aiResult.item}</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem", marginBottom: "0.6rem" }}>
+            {[["Cal", aiResult.calories], ["Prot", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
+              <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
+                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
+            <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-parse</button>
+            <button className="btn-primary" onClick={logAiResult} disabled={saving}
+              style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1074,14 +1181,13 @@ function SmoothiePage({ frequentFoods, todayCals, todayProtein, todayBurn, onBac
         <div style={{ marginTop: "1.25rem" }}>
           {logged ? (
             <div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#9a8f7e", marginBottom: "0.4rem" }}>
-                Logged to today ✓ — ingredient list:
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#3a7d44", marginBottom: "0.75rem" }}>
+                Smoothie logged ✓
               </div>
-              <textarea readOnly value={copyText} onClick={e => e.target.select()} rows={2} className="smth-copy-area" />
-              <div style={{ textAlign: "right", marginTop: "0.5rem" }}>
-                <button onClick={() => { setLogged(false); setCopyText(""); setItems([]); }}
+              <div style={{ textAlign: "right" }}>
+                <button onClick={() => { setLogged(false); setItems([]); }}
                   style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", background: "none", border: "1px solid #d6cfc4", color: "#9a8f7e", padding: "0.3rem 0.75rem", borderRadius: 3, cursor: "pointer" }}>
-                  Clear
+                  New smoothie
                 </button>
               </div>
             </div>
@@ -1092,7 +1198,7 @@ function SmoothiePage({ frequentFoods, todayCals, todayProtein, todayBurn, onBac
                 disabled={items.length === 0 || saving}
                 className="smth-generate-btn"
                 style={{ background: items.length > 0 ? "#2c2418" : "#d6cfc4", cursor: items.length > 0 ? "pointer" : "not-allowed" }}>
-                {saving ? "Logging…" : "Generate Ingredient List"}
+                {saving ? "Logging…" : "Log"}
               </button>
             </div>
           )}
