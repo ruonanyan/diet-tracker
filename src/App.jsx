@@ -707,7 +707,7 @@ function HomeAIBox({ onLogged }) {
     setAiError("");
     setAiResult(null);
     try {
-      const res = await fetch('/api/parse-food', {
+      const res = await fetch('/api/parse-entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ description: aiText.trim() }),
@@ -724,19 +724,25 @@ function HomeAIBox({ onLogged }) {
   async function logAiResult() {
     if (!aiResult) return;
     setSaving(true);
-    await supabase.from("food_log").insert({
-      date, time: getMealTime(),
-      item: aiResult.item,
-      calories: aiResult.calories || 0,
-      protein: aiResult.protein || 0,
-      carbs: aiResult.carbs || 0,
-      fat: aiResult.fat || 0,
-    });
+    if (aiResult.type === "workout") {
+      await supabase.from("workouts").insert({ date, burn_value: aiResult.burn_value, notes: aiResult.notes });
+    } else {
+      await supabase.from("food_log").insert({
+        date, time: getMealTime(),
+        item: aiResult.item,
+        calories: aiResult.calories || 0,
+        protein: aiResult.protein || 0,
+        carbs: aiResult.carbs || 0,
+        fat: aiResult.fat || 0,
+      });
+    }
     setSaving(false);
     setAiText("");
     setAiResult(null);
     onLogged();
   }
+
+  const isWorkout = aiResult?.type === "workout";
 
   return (
     <div style={{ marginBottom: "1.5rem", background: "#fff", border: "1px solid #e8e2d8", borderRadius: 8, padding: "1rem 1.1rem" }}>
@@ -747,7 +753,7 @@ function HomeAIBox({ onLogged }) {
       </div>
 
       <textarea
-        placeholder="Describe what you ate…"
+        placeholder="Describe food or a workout…"
         value={aiText}
         onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); }}
         rows={2}
@@ -768,18 +774,34 @@ function HomeAIBox({ onLogged }) {
       )}
 
       {aiResult && (
-        <div style={{ background: "#f0ebe3", borderRadius: 6, padding: "0.75rem", marginTop: "0.75rem" }}>
-          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3d3228", marginBottom: "0.45rem", fontWeight: 600 }}>{aiResult.item}</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem", marginBottom: "0.6rem" }}>
-            {[["Cal", aiResult.calories], ["Prot", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
-              <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
-              </div>
-            ))}
+        <div style={{ background: isWorkout ? "#eaf2eb" : "#f0ebe3", borderRadius: 6, padding: "0.75rem", marginTop: "0.75rem" }}>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", letterSpacing: "0.08em", textTransform: "uppercase", color: isWorkout ? "#3a7d44" : "#b07d3a", marginBottom: "0.35rem" }}>
+            {isWorkout ? "💪 Workout" : "🍽 Food"}
           </div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3d3228", marginBottom: "0.5rem", fontWeight: 600 }}>
+            {isWorkout ? aiResult.notes : aiResult.item}
+          </div>
+          {isWorkout ? (
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.4rem", marginBottom: "0.6rem" }}>
+              {[["Extra Burn", `+${aiResult.burn_value} cal`], ["Total Burn", `${TDEE + aiResult.burn_value} cal`]].map(([lbl, val]) => (
+                <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3a7d44", fontWeight: 600 }}>{val}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem", marginBottom: "0.6rem" }}>
+              {[["Cal", aiResult.calories], ["Prot", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
+                <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
+                </div>
+              ))}
+            </div>
+          )}
           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-            <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-parse</button>
+            <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-calculate</button>
             <button className="btn-primary" onClick={logAiResult} disabled={saving}
               style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
           </div>
