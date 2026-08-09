@@ -490,7 +490,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
 
 // ─── Add Food Form Content ────────────────────────────────────────────────────
 function AddFormContent({ date, frequentFoods, onSaved }) {
-  const [tab, setTab] = useState("frequent");
+  const [tab, setTab] = useState("ai");
   const [mealTime, setMealTime] = useState("lunch");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
@@ -498,6 +498,11 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
   const [custom, setCustom] = useState({ item: "", calories: "", protein: "", carbs: "", fat: "" });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  // AI tab state
+  const [aiText, setAiText] = useState("");
+  const [aiResult, setAiResult] = useState(null);
+  const [parsing, setParsing] = useState(false);
+  const [aiError, setAiError] = useState("");
 
   const filtered = frequentFoods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
   const s = Math.max(0.01, Number(servings) || 1);
@@ -529,6 +534,40 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
     onSaved();
   }
 
+  async function parseWithAI() {
+    if (!aiText.trim()) return;
+    setParsing(true);
+    setAiError("");
+    setAiResult(null);
+    try {
+      const res = await fetch('/api/parse-food', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: aiText.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to parse');
+      setAiResult(data);
+    } catch (e) {
+      setAiError(e.message);
+    }
+    setParsing(false);
+  }
+
+  async function logAiResult() {
+    if (!aiResult) return;
+    setSaving(true);
+    await supabase.from("food_log").insert({
+      date, time: mealTime,
+      item: aiResult.item,
+      calories: aiResult.calories || 0,
+      protein: aiResult.protein || 0,
+      carbs: aiResult.carbs || 0,
+      fat: aiResult.fat || 0,
+    });
+    onSaved();
+  }
+
   return (
     <>
       <div className="section-label" style={{ marginBottom: "0.75rem" }}>Add Entry</div>
@@ -544,13 +583,54 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
       </div>
 
       <div style={{ display: "flex", borderRadius: 4, overflow: "hidden", border: "1px solid #d8d0c4", marginBottom: "1rem" }}>
-        {[["frequent", "Frequent Foods"], ["custom", "Custom"]].map(([t, lbl]) => (
+        {[["ai", "✦ AI"], ["frequent", "Frequent"], ["custom", "Custom"]].map(([t, lbl]) => (
           <button key={t} onClick={() => setTab(t)}
-            style={{ flex: 1, padding: "0.5rem", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", fontWeight: tab === t ? 600 : 400, background: tab === t ? "#3d3228" : "#faf9f7", color: tab === t ? "#fff" : "#9a8f7e" }}>
+            style={{ flex: 1, padding: "0.5rem", border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", fontWeight: tab === t ? 600 : 400, background: tab === t ? "#3d3228" : "#faf9f7", color: tab === t ? "#fff" : "#9a8f7e" }}>
             {lbl}
           </button>
         ))}
       </div>
+
+      {tab === "ai" && (
+        <>
+          <textarea
+            placeholder="Describe what you ate in plain English…&#10;e.g. 2 scrambled eggs with cheddar on sourdough"
+            value={aiText}
+            onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); }}
+            rows={3}
+            style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.6rem 0.75rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: "0.75rem" }}
+          />
+          <button
+            onClick={parseWithAI}
+            disabled={!aiText.trim() || parsing}
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.55rem 1.25rem", borderRadius: 2, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed", marginBottom: "1rem" }}>
+            {parsing ? "Parsing…" : "✦ Parse with AI"}
+          </button>
+
+          {aiError && (
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginBottom: "0.75rem" }}>{aiError}</div>
+          )}
+
+          {aiResult && (
+            <div style={{ background: "#f0ebe3", borderRadius: 6, padding: "0.85rem", marginBottom: "0.75rem" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3d3228", marginBottom: "0.5rem", fontWeight: 600 }}>{aiResult.item}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem", marginBottom: "0.75rem" }}>
+                {[["Cal", aiResult.calories], ["Protein", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
+                  <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.4rem", textAlign: "center" }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
+                  </div>
+                ))}
+              </div>
+              <div className="form-actions">
+                <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-parse</button>
+                <button className="btn-primary" onClick={logAiResult} disabled={saving}
+                  style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {tab === "frequent" ? (
         <>
