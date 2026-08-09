@@ -731,7 +731,10 @@ function HomeAIBox({ onLogged }) {
 
   return (
     <div style={{ marginBottom: "1.5rem", background: "#fff", border: "1px solid #e8e2d8", borderRadius: 8, padding: "1rem 1.1rem" }}>
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#b5a898", marginBottom: "0.6rem" }}>✦ Quick Log</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.6rem" }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#b5a898" }}>✦ Quick Log</span>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#b5a898" }}>{parseLocal(today).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
+      </div>
 
       <textarea
         placeholder="Describe what you ate…"
