@@ -689,8 +689,17 @@ function HomeAIBox({ onLogged }) {
   const [parsing, setParsing] = useState(false);
   const [aiError, setAiError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [mealTime, setMealTime] = useState("dinner");
   const [date, setDate] = useState(today);
+
+  function getMealTime() {
+    const h = new Date().getHours();
+    if (h < 10) return "morning";
+    if (h < 12) return "midday";
+    if (h < 15) return "lunch";
+    if (h < 17) return "afternoon";
+    if (h < 21) return "dinner";
+    return "evening";
+  }
 
   async function parseWithAI() {
     if (!aiText.trim()) return;
@@ -716,7 +725,7 @@ function HomeAIBox({ onLogged }) {
     if (!aiResult) return;
     setSaving(true);
     await supabase.from("food_log").insert({
-      date, time: mealTime,
+      date, time: getMealTime(),
       item: aiResult.item,
       calories: aiResult.calories || 0,
       protein: aiResult.protein || 0,
@@ -733,7 +742,8 @@ function HomeAIBox({ onLogged }) {
     <div style={{ marginBottom: "1.5rem", background: "#fff", border: "1px solid #e8e2d8", borderRadius: 8, padding: "1rem 1.1rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.6rem" }}>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#b5a898" }}>✦ Quick Log</span>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", color: "#b5a898" }}>{parseLocal(today).toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" })}</span>
+        <input type="date" value={date} onChange={e => setDate(e.target.value)}
+          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
       </div>
 
       <textarea
@@ -744,25 +754,14 @@ function HomeAIBox({ onLogged }) {
         style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: "0.6rem" }}
       />
 
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.25rem", flex: 1 }}>
-          {MEAL_TIMES.map(t => (
-            <button key={t} onClick={() => setMealTime(t)}
-              style={{ padding: "0.2rem 0.5rem", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.62rem", background: mealTime === t ? "#3d3228" : "#e8e2d8", color: mealTime === t ? "#fff" : "#6b5f52" }}>
-              {t}
-            </button>
-          ))}
-        </div>
-        <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
+      <div style={{ textAlign: "right" }}>
+        <button
+          onClick={parseWithAI}
+          disabled={!aiText.trim() || parsing}
+          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.45rem 1rem", borderRadius: 2, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
+          {parsing ? "Calculating…" : "✦ Calculate"}
+        </button>
       </div>
-
-      <button
-        onClick={parseWithAI}
-        disabled={!aiText.trim() || parsing}
-        style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.45rem 1rem", borderRadius: 2, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
-        {parsing ? "Parsing…" : "✦ Calculate"}
-      </button>
 
       {aiError && (
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginTop: "0.5rem" }}>{aiError}</div>
