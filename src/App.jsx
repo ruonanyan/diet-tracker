@@ -689,6 +689,7 @@ function HomeAIBox({ onLogged }) {
   const [parsing, setParsing] = useState(false);
   const [aiError, setAiError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
   const [date, setDate] = useState(today);
 
   function getMealTime() {
@@ -706,6 +707,7 @@ function HomeAIBox({ onLogged }) {
     setParsing(true);
     setAiError("");
     setAiResult(null);
+    setSavedMsg("");
     try {
       const res = await fetch('/api/parse-entry', {
         method: 'POST',
@@ -721,7 +723,13 @@ function HomeAIBox({ onLogged }) {
     setParsing(false);
   }
 
-  async function logAiResult() {
+  function reset() {
+    setAiText("");
+    setAiResult(null);
+    setSavedMsg("");
+  }
+
+  async function logToday() {
     if (!aiResult) return;
     setSaving(true);
     if (aiResult.type === "workout") {
@@ -737,9 +745,24 @@ function HomeAIBox({ onLogged }) {
       });
     }
     setSaving(false);
-    setAiText("");
-    setAiResult(null);
+    reset();
     onLogged();
+  }
+
+  async function saveToFrequent() {
+    if (!aiResult || aiResult.type === "workout") return;
+    setSaving(true);
+    await supabase.from("frequent_foods").insert({
+      name: aiResult.item,
+      serving: null,
+      calories: aiResult.calories || 0,
+      protein: aiResult.protein || 0,
+      carbs: aiResult.carbs || 0,
+      fat: aiResult.fat || 0,
+    });
+    setSaving(false);
+    setSavedMsg(`"${aiResult.item}" added to frequent foods`);
+    setAiResult(null);
   }
 
   const isWorkout = aiResult?.type === "workout";
@@ -753,9 +776,9 @@ function HomeAIBox({ onLogged }) {
       </div>
 
       <textarea
-        placeholder="Describe food or a workout…"
+        placeholder="Describe food, a workout, or a new frequent food to save…"
         value={aiText}
-        onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); }}
+        onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); setSavedMsg(""); }}
         rows={2}
         style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: "0.6rem" }}
       />
@@ -765,12 +788,16 @@ function HomeAIBox({ onLogged }) {
           onClick={parseWithAI}
           disabled={!aiText.trim() || parsing}
           style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.45rem 1rem", borderRadius: 2, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
-          {parsing ? "Calculating…" : "✦ Calculate"}
+          {parsing ? "Thinking…" : "✦ Submit"}
         </button>
       </div>
 
       {aiError && (
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginTop: "0.5rem" }}>{aiError}</div>
+      )}
+
+      {savedMsg && (
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#3a7d44", marginTop: "0.5rem" }}>✓ {savedMsg}</div>
       )}
 
       {aiResult && (
@@ -800,10 +827,16 @@ function HomeAIBox({ onLogged }) {
               ))}
             </div>
           )}
-          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end" }}>
-            <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-calculate</button>
-            <button className="btn-primary" onClick={logAiResult} disabled={saving}
-              style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log"}</button>
+          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
+            <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-submit</button>
+            {!isWorkout && (
+              <button className="btn-cancel" onClick={saveToFrequent} disabled={saving}
+                style={{ opacity: saving ? 0.4 : 1, borderColor: "#b07d3a", color: "#b07d3a" }}>
+                Save to frequent
+              </button>
+            )}
+            <button className="btn-primary" onClick={logToday} disabled={saving}
+              style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log today"}</button>
           </div>
         </div>
       )}
