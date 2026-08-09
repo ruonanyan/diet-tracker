@@ -193,7 +193,7 @@ export default function App() {
       supabase.from("food_log").select("date, calories, protein").order("date", { ascending: false }),
       supabase.from("workouts").select("date, burn_value, notes"),
     ]);
-    const byDate = {};
+    const byDate = { [today]: { calories: 0, protein: 0 } };
     for (const e of food || []) {
       if (!byDate[e.date]) byDate[e.date] = { calories: 0, protein: 0 };
       byDate[e.date].calories += e.calories || 0;
