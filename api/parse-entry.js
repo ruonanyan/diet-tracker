@@ -34,7 +34,7 @@ export default async function handler(req, res) {
     },
     body: JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 300,
+      max_tokens: 600,
       messages: [{
         role: 'user',
         content: `You are a nutrition and fitness expert. Determine if the following description is about FOOD/DRINK or a WORKOUT/EXERCISE, then return ONLY a JSON object — no explanation, no markdown.
@@ -42,7 +42,13 @@ export default async function handler(req, res) {
 User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}. TDEE baseline: ${tdee} kcal/day.${frequentFoodsBlock}
 
 If it's FOOD, return:
-{"type": "food", "item": "concise food description", "calories": number, "protein": number, "carbs": number, "fat": number}
+{"type": "food", "item": "concise overall description", "items": [{"name": "item name", "calories": number, "protein": number, "carbs": number, "fat": number}], "calories": number, "protein": number, "carbs": number, "fat": number}
+
+Rules for the "items" array:
+- Break down EVERY distinct ingredient or component into its own entry.
+- The top-level calories/protein/carbs/fat MUST equal the sum of all items.
+- If only one food is mentioned, items has exactly one entry.
+- For "MY [food]" references, use the exact macros from the frequent foods list above.
 
 If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}

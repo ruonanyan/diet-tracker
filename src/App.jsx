@@ -915,13 +915,42 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
               ))}
             </div>
           ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem", marginBottom: "0.6rem" }}>
-              {[["Cal", aiResult.calories], ["Prot", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
-                <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
-                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
+            <div style={{ marginBottom: "0.6rem" }}>
+              {/* Per-item breakdown */}
+              {aiResult.items && aiResult.items.length > 1 && (
+                <div style={{ marginBottom: "0.5rem" }}>
+                  <table style={{ width: "100%", borderCollapse: "collapse", fontFamily: "'DM Mono', monospace", fontSize: "0.72rem" }}>
+                    <thead>
+                      <tr>
+                        {["Item", "Cal", "Prot", "Carbs", "Fat"].map(h => (
+                          <th key={h} style={{ textAlign: h === "Item" ? "left" : "right", color: "#b5a898", fontSize: "0.58rem", letterSpacing: "0.06em", textTransform: "uppercase", paddingBottom: "0.3rem", fontWeight: 400 }}>{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {aiResult.items.map((it, i) => (
+                        <tr key={i} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
+                          <td style={{ padding: "0.25rem 0.3rem 0.25rem 0", color: "#4a4036", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.name}</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.calories}</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.protein}g</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.carbs}g</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.fat}g</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <div style={{ borderTop: "1px solid #d8d0c4", marginTop: "0.25rem" }} />
                 </div>
-              ))}
+              )}
+              {/* Total row */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem" }}>
+                {[["Cal", aiResult.calories], ["Prot", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
+                  <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
+                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
+                  </div>
+                ))}
+              </div>
             </div>
           )}
           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
