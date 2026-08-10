@@ -233,6 +233,8 @@ function SummaryTable({ rows, workoutsMap, tdee, onOpenDay }) {
 function AllEntriesPage({ summaries, workoutsMap, profile, onBack, onOpenDay }) {
   const PAGE_SIZE = 25;
   const [page, setPage] = useState(0);
+
+  useEffect(() => { window.scrollTo(0, 0); }, []);
   const [dayOpen, setDayOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(null);
   const tdee = profile?.tdee ?? TDEE;
