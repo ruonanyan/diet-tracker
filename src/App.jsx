@@ -186,6 +186,106 @@ const GLOBAL_CSS = `
   .wk-delete-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; background: none; border: 1px solid #c0392b; color: #c0392b; padding: 0.4rem 0.75rem; border-radius: 2px; cursor: pointer; }
 `;
 
+// ─── Summary Table (shared by home + all-entries page) ───────────────────────
+function SummaryTable({ rows, workoutsMap, tdee, onOpenDay }) {
+  return (
+    <table className="tbl">
+      <thead>
+        <tr>
+          <th style={{ textAlign: "left" }}>Date</th>
+          <th>Eaten</th>
+          <th>Burn</th>
+          <th>Deficit</th>
+          <th>Protein</th>
+        </tr>
+      </thead>
+      <tbody>
+        {rows.map(([date, { calories, protein }]) => {
+          const wk = workoutsMap[date];
+          const burn = tdee + (wk ? wk.burn_value : 0);
+          const deficit = burn - calories;
+          return (
+            <tr key={date} onClick={() => onOpenDay(date)}>
+              <td><span className="date-str">{displayShort(date)}</span></td>
+              <td>
+                <span className="cell-main">{calories.toLocaleString()}</span>
+                <span className="cell-sub">{(burn - DEFICIT_TARGET).toLocaleString()}</span>
+              </td>
+              <td>
+                {wk && <span style={{ fontSize: "15px", marginRight: "4px" }}>💪</span>}
+                <span className="cell-main">{burn.toLocaleString()}</span>
+              </td>
+              <td>
+                <span className={deficit >= 0 ? "deficit-pos" : "deficit-neg"}>
+                  {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
+                </span>
+              </td>
+              <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem" }}>{protein}g</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+  );
+}
+
+// ─── All Entries Page ─────────────────────────────────────────────────────────
+function AllEntriesPage({ summaries, workoutsMap, profile, onBack, onOpenDay }) {
+  const PAGE_SIZE = 25;
+  const [page, setPage] = useState(0);
+  const [dayOpen, setDayOpen] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const tdee = profile?.tdee ?? TDEE;
+
+  const totalPages = Math.ceil(summaries.length / PAGE_SIZE);
+  const pageRows = summaries.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
+
+  function openDay(date) { setSelectedDate(date); setDayOpen(true); }
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
+      <style>{GLOBAL_CSS}</style>
+      <div className="wrap">
+        <button className="back-link" onClick={onBack}>← Back</button>
+        <h1>All entries</h1>
+        <p className="subtitle">{summaries.length} days tracked</p>
+
+        <div style={{ marginTop: "1.5rem" }}>
+          <SummaryTable rows={pageRows} workoutsMap={workoutsMap} tdee={tdee} onOpenDay={openDay} />
+        </div>
+
+        {totalPages > 1 && (
+          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: "0.75rem", marginTop: "1.5rem", fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#9a8f7e" }}>
+            <button
+              onClick={() => setPage(p => Math.max(0, p - 1))}
+              disabled={page === 0}
+              style={{ background: "none", border: "1px solid #d6cfc4", color: page === 0 ? "#d6cfc4" : "#6b5f52", padding: "0.3rem 0.7rem", borderRadius: 2, cursor: page === 0 ? "default" : "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.7rem" }}>
+              ← Prev
+            </button>
+            <span>{page + 1} / {totalPages}</span>
+            <button
+              onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+              disabled={page === totalPages - 1}
+              style={{ background: "none", border: "1px solid #d6cfc4", color: page === totalPages - 1 ? "#d6cfc4" : "#6b5f52", padding: "0.3rem 0.7rem", borderRadius: 2, cursor: page === totalPages - 1 ? "default" : "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.7rem" }}>
+              Next →
+            </button>
+          </div>
+        )}
+      </div>
+
+      {dayOpen && selectedDate && (
+        <DaySheet
+          date={selectedDate}
+          workoutsMap={workoutsMap}
+          frequentFoods={[]}
+          profile={profile}
+          onClose={() => setDayOpen(false)}
+        />
+      )}
+    </div>
+  );
+}
+
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const today = fmtDate(new Date());
@@ -240,6 +340,7 @@ export default function App() {
   if (page === "calc") return <CalcPage onBack={() => setPage(null)} tdee={tdee} />;
   if (page === "frequent") return <FrequentPage frequentFoods={frequentFoods} onBack={() => setPage(null)} />;
   if (page === "profile") return <ProfilePage profile={profile} onBack={() => setPage(null)} onSaved={p => { setProfile(p); setPage(null); }} />;
+  if (page === "all") return <AllEntriesPage summaries={summaries} workoutsMap={workoutsMap} profile={profile} onBack={() => setPage(null)} onOpenDay={openDay} />;
   if (page === "smoothie") return (
     <SmoothiePage
       frequentFoods={frequentFoods}
@@ -267,43 +368,16 @@ export default function App() {
         {loading ? (
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#b5a898" }}>Loading…</div>
         ) : (
-          <table className="tbl">
-            <thead>
-              <tr>
-                <th style={{ textAlign: "left" }}>Date</th>
-                <th>Eaten</th>
-                <th>Burn</th>
-                <th>Deficit</th>
-                <th>Protein</th>
-              </tr>
-            </thead>
-            <tbody>
-              {summaries.map(([date, { calories, protein }]) => {
-                const wk = workoutsMap[date];
-                const burn = tdee + (wk ? wk.burn_value : 0);
-                const deficit = burn - calories;
-                return (
-                  <tr key={date} onClick={() => openDay(date)}>
-                    <td><span className="date-str">{displayShort(date)}</span></td>
-                    <td>
-                      <span className="cell-main">{calories.toLocaleString()}</span>
-                      <span className="cell-sub">{(burn - DEFICIT_TARGET).toLocaleString()}</span>
-                    </td>
-                    <td>
-                      {wk && <span style={{ fontSize: "15px", marginRight: "4px" }}>💪</span>}
-                      <span className="cell-main">{burn.toLocaleString()}</span>
-                    </td>
-                    <td>
-                      <span className={deficit >= 0 ? "deficit-pos" : "deficit-neg"}>
-                        {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
-                      </span>
-                    </td>
-                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem" }}>{protein}g</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+          <>
+            <SummaryTable rows={summaries.slice(0, 10)} workoutsMap={workoutsMap} tdee={tdee} onOpenDay={openDay} />
+            {summaries.length > 10 && (
+              <div style={{ textAlign: "center", marginTop: "1rem" }}>
+                <button className="rules-link" onClick={() => setPage("all")} style={{ fontSize: "0.72rem" }}>
+                  View all {summaries.length} entries →
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -799,18 +873,16 @@ function HomeAIBox({ onLogged, profile, tdee }) {
         placeholder="Describe food, a workout, or a new frequent food to save…"
         value={aiText}
         onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); setSavedMsg(""); }}
-        rows={2}
+        rows={6}
         style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: "0.6rem" }}
       />
 
-      <div style={{ textAlign: "right" }}>
-        <button
-          onClick={parseWithAI}
-          disabled={!aiText.trim() || parsing}
-          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.45rem 1rem", borderRadius: 2, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
-          {parsing ? "Thinking…" : "✦ Submit"}
-        </button>
-      </div>
+      <button
+        onClick={parseWithAI}
+        disabled={!aiText.trim() || parsing}
+        style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
+        {parsing ? "Thinking…" : "✦ Submit"}
+      </button>
 
       {aiError && (
         <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginTop: "0.5rem" }}>{aiError}</div>
