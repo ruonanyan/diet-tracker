@@ -1138,8 +1138,6 @@ function ProfilePage({ profile: fallbackProfile, onBack, onSaved }) {
   const [form, setForm] = useState(null); // null = loading
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [history, setHistory] = useState([]);
-
   // Always fetch latest from DB on open — never trust cached prop
   useEffect(() => {
     supabase.from("user_profile").select("*").eq("id", 1).single()
@@ -1156,11 +1154,6 @@ function ProfilePage({ profile: fallbackProfile, onBack, onSaved }) {
         });
       });
   }, []);
-
-  useEffect(() => {
-    supabase.from("profile_history").select("*").order("recorded_at", { ascending: false }).limit(20)
-      .then(({ data }) => setHistory(data || []));
-  }, [saved]);
 
   function set(k, v) { setForm(p => ({ ...p, [k]: v })); setSaved(false); }
 
@@ -1257,34 +1250,6 @@ function ProfilePage({ profile: fallbackProfile, onBack, onSaved }) {
           </div>
         </div>
 
-        {/* History */}
-        {history.length > 0 && (
-          <div style={{ marginTop: "2.5rem" }}>
-            <div className="section-label" style={{ marginBottom: "0.75rem" }}>History</div>
-            <table className="tbl">
-              <thead>
-                <tr>
-                  <th style={{ textAlign: "left" }}>Date</th>
-                  <th>Weight</th>
-                  <th>TDEE</th>
-                  <th>Age</th>
-                  <th>RHR</th>
-                </tr>
-              </thead>
-              <tbody>
-                {history.map(h => (
-                  <tr key={h.id}>
-                    <td><span className="date-str">{new Date(h.recorded_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></td>
-                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.weight_lbs} lbs</td>
-                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.tdee}</td>
-                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.age}</td>
-                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.rhr} bpm</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1336,6 +1301,13 @@ function CalcPage({ onBack, tdee = TDEE }) {
 }
 
 // ─── Frequently Eat Page ──────────────────────────────────────────────────────
+function perPiece(f) {
+  const m = f.serving?.match(/^(\d+(?:\.\d+)?)\s+piece/i);
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  return { n, cal: Math.round(f.calories / n), protein: Math.round((f.protein / n) * 10) / 10 };
+}
+
 function FrequentPage({ frequentFoods, onBack }) {
   const [search, setSearch] = useState("");
   const filtered = frequentFoods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
@@ -1353,20 +1325,23 @@ function FrequentPage({ frequentFoods, onBack }) {
           <thead>
             <tr>
               <th style={{ textAlign: "left" }}>Food</th>
-              <th>1 Serving</th>
+              <th>Serving</th>
               <th>Cal</th>
               <th>Protein</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(f => (
-              <tr key={f.id}>
-                <td>{f.name}</td>
-                <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{f.serving}</td>
-                <td style={{ fontWeight: 500 }}>{f.calories}</td>
-                <td style={{ color: "#6b5f52" }}>{f.protein}g</td>
-              </tr>
-            ))}
+            {filtered.map(f => {
+              const pp = perPiece(f);
+              return (
+                <tr key={f.id}>
+                  <td>{f.name}</td>
+                  <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{pp ? "1 piece" : f.serving}</td>
+                  <td style={{ fontWeight: 500 }}>{pp ? pp.cal : f.calories}</td>
+                  <td style={{ color: "#6b5f52" }}>{pp ? `${pp.protein}g` : `${f.protein}g`}</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
