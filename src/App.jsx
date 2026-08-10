@@ -1040,6 +1040,12 @@ function ProfilePage({ profile, onBack, onSaved }) {
   });
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [history, setHistory] = useState([]);
+
+  useEffect(() => {
+    supabase.from("profile_history").select("*").order("recorded_at", { ascending: false }).limit(20)
+      .then(({ data }) => setHistory(data || []));
+  }, [saved]);
 
   function set(k, v) { setForm(p => ({ ...p, [k]: v })); setSaved(false); }
 
@@ -1055,7 +1061,14 @@ function ProfilePage({ profile, onBack, onSaved }) {
       rhr: parseInt(form.rhr) || profile.rhr,
       updated_at: new Date().toISOString(),
     };
-    await supabase.from("user_profile").update(updated).eq("id", 1);
+    await Promise.all([
+      supabase.from("user_profile").update(updated).eq("id", 1),
+      supabase.from("profile_history").insert({
+        age: updated.age, gender: updated.gender,
+        weight_lbs: updated.weight_lbs, height_in: updated.height_in,
+        tdee: updated.tdee, rhr: updated.rhr,
+      }),
+    ]);
     setSaving(false);
     setSaved(true);
     onSaved(updated);
@@ -1118,6 +1131,35 @@ function ProfilePage({ profile, onBack, onSaved }) {
             {saved && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#3a7d44" }}>✓ Saved</span>}
           </div>
         </div>
+
+        {/* History */}
+        {history.length > 0 && (
+          <div style={{ marginTop: "2.5rem" }}>
+            <div className="section-label" style={{ marginBottom: "0.75rem" }}>History</div>
+            <table className="tbl">
+              <thead>
+                <tr>
+                  <th style={{ textAlign: "left" }}>Date</th>
+                  <th>Weight</th>
+                  <th>TDEE</th>
+                  <th>Age</th>
+                  <th>RHR</th>
+                </tr>
+              </thead>
+              <tbody>
+                {history.map(h => (
+                  <tr key={h.id}>
+                    <td><span className="date-str">{new Date(h.recorded_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span></td>
+                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.weight_lbs} lbs</td>
+                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.tdee}</td>
+                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.age}</td>
+                    <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", textAlign: "right" }}>{h.rhr} bpm</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
