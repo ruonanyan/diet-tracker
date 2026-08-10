@@ -3,10 +3,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description } = req.body || {};
+  const { description, userStats } = req.body || {};
   if (!description) {
     return res.status(400).json({ error: 'Description required' });
   }
+
+  const age = userStats?.age ?? 35;
+  const gender = userStats?.gender ?? 'female';
+  const weight_lbs = userStats?.weight_lbs ?? 156;
+  const height_in = userStats?.height_in ?? 64;
+  const tdee = userStats?.tdee ?? 1717;
+  const height_str = `${Math.floor(height_in / 12)}'${height_in % 12}"`;
+  const weight_kg = (weight_lbs * 0.453592).toFixed(1);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -27,10 +35,10 @@ export default async function handler(req, res) {
         role: 'user',
         content: `You are a fitness expert. Estimate the extra calorie burn from this workout. Return ONLY a JSON object — no explanation, no markdown.
 
-User stats: female, age 35, 156 lbs (70.8 kg), 5'4" (163 cm).
+User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}.
 
 Calculation rules:
-- burn_value = calories burned FROM THE WORKOUT ONLY, not including the TDEE baseline of 1,717 kcal/day.
+- burn_value = calories burned FROM THE WORKOUT ONLY, not including the TDEE baseline of ${tdee} kcal/day.
 - The app will apply ×1.10 EPOC multiplier on top of your estimate to account for afterburn effect, so do NOT include EPOC in your number.
 - If heart-rate zone minutes are given, use the Karvonen formula: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min.
 - If no zone data is given, estimate based on activity type, duration, and intensity described.

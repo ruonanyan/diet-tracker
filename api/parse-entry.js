@@ -3,10 +3,18 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description } = req.body || {};
+  const { description, userStats } = req.body || {};
   if (!description) {
     return res.status(400).json({ error: 'Description required' });
   }
+
+  const age = userStats?.age ?? 35;
+  const gender = userStats?.gender ?? 'female';
+  const weight_lbs = userStats?.weight_lbs ?? 156;
+  const height_in = userStats?.height_in ?? 64;
+  const tdee = userStats?.tdee ?? 1717;
+  const height_str = `${Math.floor(height_in / 12)}'${height_in % 12}"`;
+  const weight_kg = (weight_lbs * 0.453592).toFixed(1);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -27,7 +35,7 @@ export default async function handler(req, res) {
         role: 'user',
         content: `You are a nutrition and fitness expert. Determine if the following description is about FOOD/DRINK or a WORKOUT/EXERCISE, then return ONLY a JSON object — no explanation, no markdown.
 
-User stats: female, age 35, 156 lbs (70.8 kg), 5'4" (163 cm). TDEE baseline: 1,717 kcal/day.
+User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}. TDEE baseline: ${tdee} kcal/day.
 
 If it's FOOD, return:
 {"type": "food", "item": "concise food description", "calories": number, "protein": number, "carbs": number, "fat": number}
@@ -36,7 +44,7 @@ If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}
 
 Workout calculation rules:
-- burn_value = calories burned FROM THE WORKOUT ONLY, not including the 1,717 kcal TDEE baseline.
+- burn_value = calories burned FROM THE WORKOUT ONLY, not including the ${tdee} kcal TDEE baseline.
 - The app will apply ×1.10 EPOC multiplier on top of your estimate, so do NOT include EPOC in your number.
 - If heart-rate zone minutes are given, use the Karvonen formula: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min.
 - If no zone data is given, estimate based on activity type, duration, and intensity.

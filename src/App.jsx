@@ -21,7 +21,12 @@ const SERVING_GRAMS = {
   "Fage 0% Greek Yogurt": 170,
 };
 
+const DEFAULT_PROFILE = { age: 35, gender: "female", weight_lbs: 156.0, height_in: 64, tdee: 1717, rhr: 64 };
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+function fmtHeight(inches) {
+  return `${Math.floor(inches / 12)}'${inches % 12}"`;
+}
 const fmtDate = (d) => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, "0");
@@ -184,13 +189,14 @@ const GLOBAL_CSS = `
 // ─── App ─────────────────────────────────────────────────────────────────────
 export default function App() {
   const today = fmtDate(new Date());
-  const [page, setPage] = useState(null); // null | "calc" | "frequent" | "smoothie"
+  const [page, setPage] = useState(null);
   const [dayOpen, setDayOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(today);
   const [summaries, setSummaries] = useState([]);
   const [workoutsMap, setWorkoutsMap] = useState({});
   const [loading, setLoading] = useState(true);
   const [frequentFoods, setFrequentFoods] = useState([]);
+  const [profile, setProfile] = useState(DEFAULT_PROFILE);
 
   const fetchHome = useCallback(async () => {
     setLoading(true);
@@ -215,19 +221,25 @@ export default function App() {
   useEffect(() => {
     supabase.from("frequent_foods").select("*").order("name")
       .then(({ data }) => setFrequentFoods(data || []));
+    supabase.from("user_profile").select("*").eq("id", 1).single()
+      .then(({ data }) => { if (data) setProfile(data); });
   }, []);
 
   function openDay(date) { setSelectedDate(date); setDayOpen(true); }
 
-  // Today's context for smoothie calculator
+  const tdee = profile.tdee;
   const todaySummary = summaries.find(([d]) => d === today);
   const todayCals = todaySummary ? todaySummary[1].calories : 0;
   const todayProtein = todaySummary ? todaySummary[1].protein : 0;
   const todayWorkout = workoutsMap[today];
-  const todayBurn = TDEE + (todayWorkout ? todayWorkout.burn_value : 0);
+  const todayBurn = tdee + (todayWorkout ? todayWorkout.burn_value : 0);
 
-  if (page === "calc") return <CalcPage onBack={() => setPage(null)} />;
+  const genderLabel = profile.gender === "female" ? "F" : "M";
+  const subtitle = `Ruonan · ${profile.age}${genderLabel} · ${fmtHeight(profile.height_in)} · ${profile.weight_lbs} lbs`;
+
+  if (page === "calc") return <CalcPage onBack={() => setPage(null)} tdee={tdee} />;
   if (page === "frequent") return <FrequentPage frequentFoods={frequentFoods} onBack={() => setPage(null)} />;
+  if (page === "profile") return <ProfilePage profile={profile} onBack={() => setPage(null)} onSaved={p => { setProfile(p); setPage(null); }} />;
   if (page === "smoothie") return (
     <SmoothiePage
       frequentFoods={frequentFoods}
@@ -242,14 +254,15 @@ export default function App() {
       <style>{GLOBAL_CSS}</style>
       <div className="wrap">
         <h1>Calorie Tracker</h1>
-        <p className="subtitle">Ruonan · 35F · 5'4" · 156 lbs</p>
+        <p className="subtitle">{subtitle}</p>
         <div className="page-links">
           <button className="rules-link" onClick={() => setPage("calc")}>Calculation rule</button>
           <button className="rules-link" onClick={() => setPage("frequent")}>Frequently eat</button>
           <button className="rules-link" onClick={() => setPage("smoothie")}>Smoothie calculator</button>
+          <button className="rules-link" onClick={() => setPage("profile")}>My profile</button>
         </div>
 
-        <HomeAIBox onLogged={fetchHome} />
+        <HomeAIBox onLogged={fetchHome} profile={profile} tdee={tdee} />
 
         {loading ? (
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#b5a898" }}>Loading…</div>
@@ -267,8 +280,8 @@ export default function App() {
             <tbody>
               {summaries.map(([date, { calories, protein }]) => {
                 const wk = workoutsMap[date];
-                const burn = TDEE + (wk ? wk.burn_value : 0);
-                const deficit = burn - calories; // positive = under = good
+                const burn = tdee + (wk ? wk.burn_value : 0);
+                const deficit = burn - calories;
                 return (
                   <tr key={date} onClick={() => openDay(date)}>
                     <td><span className="date-str">{displayShort(date)}</span></td>
@@ -299,6 +312,7 @@ export default function App() {
           date={selectedDate}
           workoutsMap={workoutsMap}
           frequentFoods={frequentFoods}
+          profile={profile}
           onClose={() => { setDayOpen(false); fetchHome(); }}
         />
       )}
@@ -307,7 +321,7 @@ export default function App() {
 }
 
 // ─── Day Sheet ────────────────────────────────────────────────────────────────
-function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
+function DaySheet({ date: initialDate, workoutsMap, frequentFoods, profile, onClose }) {
   const today = fmtDate(new Date());
   const [date, setDate] = useState(initialDate);
   const [entries, setEntries] = useState([]);
@@ -377,9 +391,10 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
 
   useEffect(() => { fetchDay(date); }, [date, fetchDay]);
 
+  const tdee = profile?.tdee ?? TDEE;
   const totalCals = entries.reduce((s, e) => s + (e.calories || 0), 0);
   const totalProtein = entries.reduce((s, e) => s + (e.protein || 0), 0);
-  const burn = TDEE + (workout ? workout.burn_value : 0);
+  const burn = tdee + (workout ? workout.burn_value : 0);
   const deficit = burn - totalCals;
 
   const grouped = {};
@@ -482,7 +497,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, onClose }) {
                   onSaved={() => { closeSubPage(); fetchDay(date); }} />
               )}
               {subPage === "workout" && (
-                <WorkoutFormContent date={date} existing={workout}
+                <WorkoutFormContent date={date} existing={workout} profile={profile}
                   onSaved={() => { closeSubPage(); fetchDay(date); }} />
               )}
             </div>
@@ -687,7 +702,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
 }
 
 // ─── Home AI Box ──────────────────────────────────────────────────────────────
-function HomeAIBox({ onLogged }) {
+function HomeAIBox({ onLogged, profile, tdee }) {
   const today = fmtDate(new Date());
   const [aiText, setAiText] = useState("");
   const [aiResult, setAiResult] = useState(null);
@@ -717,7 +732,7 @@ function HomeAIBox({ onLogged }) {
       const res = await fetch('/api/parse-entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: aiText.trim() }),
+        body: JSON.stringify({ description: aiText.trim(), userStats: profile }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to parse');
@@ -815,7 +830,7 @@ function HomeAIBox({ onLogged }) {
           </div>
           {isWorkout ? (
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.4rem", marginBottom: "0.6rem" }}>
-              {[["Extra Burn", `+${aiResult.burn_value} cal`], ["Total Burn", `${TDEE + aiResult.burn_value} cal`]].map(([lbl, val]) => (
+              {[["Extra Burn", `+${aiResult.burn_value} cal`], ["Total Burn", `${(tdee ?? TDEE) + aiResult.burn_value} cal`]].map(([lbl, val]) => (
                 <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
                   <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
                   <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3a7d44", fontWeight: 600 }}>{val}</div>
@@ -850,7 +865,8 @@ function HomeAIBox({ onLogged }) {
 }
 
 // ─── Workout Form Content ─────────────────────────────────────────────────────
-function WorkoutFormContent({ date, existing, onSaved }) {
+function WorkoutFormContent({ date, existing, profile, onSaved }) {
+  const tdee = profile?.tdee ?? TDEE;
   const [burnValue, setBurnValue] = useState(existing ? String(existing.burn_value) : "");
   const [notes, setNotes] = useState(existing?.notes || "");
   const [saving, setSaving] = useState(false);
@@ -872,7 +888,7 @@ function WorkoutFormContent({ date, existing, onSaved }) {
       const res = await fetch('/api/parse-workout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: aiText.trim() }),
+        body: JSON.stringify({ description: aiText.trim(), userStats: profile }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to parse');
@@ -956,7 +972,7 @@ function WorkoutFormContent({ date, existing, onSaved }) {
             </div>
             <div style={{ background: "#fff", borderRadius: 4, padding: "0.5rem", textAlign: "center" }}>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>Total Burn</div>
-              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "1.1rem", color: "#2c2418", fontWeight: 700 }}>{TDEE + aiResult.burn_value}</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "1.1rem", color: "#2c2418", fontWeight: 700 }}>{tdee + aiResult.burn_value}</div>
               <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.58rem", color: "#b5a898" }}>kcal for the day</div>
             </div>
           </div>
@@ -990,7 +1006,7 @@ function WorkoutFormContent({ date, existing, onSaved }) {
 
       <div className="form" style={{ background: "transparent", border: "none", padding: 0, marginBottom: "0.5rem" }}>
         <div>
-          <label className="wk-label">Extra burn (cal above TDEE {TDEE})</label>
+          <label className="wk-label">Extra burn (cal above TDEE {tdee})</label>
           <input type="number" value={burnValue} onChange={e => setBurnValue(e.target.value)}
             placeholder="e.g. 400" className="wk-input" />
         </div>
@@ -1011,8 +1027,104 @@ function WorkoutFormContent({ date, existing, onSaved }) {
   );
 }
 
+// ─── Profile Page ─────────────────────────────────────────────────────────────
+function ProfilePage({ profile, onBack, onSaved }) {
+  const [form, setForm] = useState({
+    age: String(profile.age),
+    gender: profile.gender,
+    weight_lbs: String(profile.weight_lbs),
+    height_ft: String(Math.floor(profile.height_in / 12)),
+    height_in_rem: String(profile.height_in % 12),
+    tdee: String(profile.tdee),
+    rhr: String(profile.rhr),
+  });
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+
+  function set(k, v) { setForm(p => ({ ...p, [k]: v })); setSaved(false); }
+
+  async function save() {
+    setSaving(true);
+    const height_in = Number(form.height_ft) * 12 + Number(form.height_in_rem);
+    const updated = {
+      age: parseInt(form.age) || profile.age,
+      gender: form.gender,
+      weight_lbs: parseFloat(form.weight_lbs) || profile.weight_lbs,
+      height_in,
+      tdee: parseInt(form.tdee) || profile.tdee,
+      rhr: parseInt(form.rhr) || profile.rhr,
+      updated_at: new Date().toISOString(),
+    };
+    await supabase.from("user_profile").update(updated).eq("id", 1);
+    setSaving(false);
+    setSaved(true);
+    onSaved(updated);
+  }
+
+  const field = (label, key, type = "number", extra = {}) => (
+    <div>
+      <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a8f7e", display: "block", marginBottom: "0.25rem" }}>{label}</label>
+      <input type={type} value={form[key]} onChange={e => set(key, e.target.value)}
+        style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", background: "#fff", border: "1px solid #d6cfc4", color: "#2c2418", padding: "0.45rem 0.65rem", borderRadius: 3, width: "100%", outline: "none" }}
+        {...extra} />
+    </div>
+  );
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
+      <style>{GLOBAL_CSS}</style>
+      <div className="wrap">
+        <button className="back-link" onClick={onBack}>← Back</button>
+        <h1>My profile</h1>
+        <p className="subtitle">Body stats · used for calorie calculations</p>
+
+        <div style={{ display: "grid", gap: "0.85rem", marginTop: "1.5rem", maxWidth: 380 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
+            {field("Age", "age")}
+            <div>
+              <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a8f7e", display: "block", marginBottom: "0.25rem" }}>Gender</label>
+              <select value={form.gender} onChange={e => set("gender", e.target.value)}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", background: "#fff", border: "1px solid #d6cfc4", color: "#2c2418", padding: "0.45rem 0.65rem", borderRadius: 3, width: "100%", outline: "none" }}>
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+          </div>
+
+          {field("Weight (lbs)", "weight_lbs")}
+
+          <div>
+            <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#9a8f7e", display: "block", marginBottom: "0.25rem" }}>Height</label>
+            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+              <input type="number" value={form.height_ft} onChange={e => set("height_ft", e.target.value)}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", background: "#fff", border: "1px solid #d6cfc4", color: "#2c2418", padding: "0.45rem 0.65rem", borderRadius: 3, width: 70, outline: "none" }} />
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#9a8f7e" }}>ft</span>
+              <input type="number" value={form.height_in_rem} onChange={e => set("height_in_rem", e.target.value)}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", background: "#fff", border: "1px solid #d6cfc4", color: "#2c2418", padding: "0.45rem 0.65rem", borderRadius: 3, width: 70, outline: "none" }} />
+              <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#9a8f7e" }}>in</span>
+            </div>
+          </div>
+
+          <div style={{ borderTop: "1px solid #e8e2d8", paddingTop: "0.85rem", display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
+            {field("TDEE baseline (kcal)", "tdee")}
+            {field("Resting HR (bpm)", "rhr")}
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", marginTop: "0.25rem" }}>
+            <button onClick={save} disabled={saving}
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.08em", textTransform: "uppercase", background: "#3d3228", color: "#fff", border: "none", padding: "0.55rem 1.25rem", borderRadius: 2, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.5 : 1 }}>
+              {saving ? "Saving…" : "Save"}
+            </button>
+            {saved && <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#3a7d44" }}>✓ Saved</span>}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── Calculation Rule Page ────────────────────────────────────────────────────
-function CalcPage({ onBack }) {
+function CalcPage({ onBack, tdee = TDEE }) {
   return (
     <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
       <style>{GLOBAL_CSS}</style>
@@ -1022,7 +1134,7 @@ function CalcPage({ onBack }) {
         <p className="subtitle">How Eaten, Burn, Deficit & targets are calculated</p>
 
         <h2>Rest-day baseline</h2>
-        <p>Your rest-day baseline is <span className="num">1,717 kcal/day</span> — this is your estimated maintenance energy with no workout, made up of your RMR (Katch-McArdle, ~1,288 kcal) plus non-exercise activity (~258 kcal). On days with no logged workout, this is your full "Burn" for the day.</p>
+        <p>Your rest-day baseline is <span className="num">{tdee.toLocaleString()} kcal/day</span> — this is your estimated maintenance energy with no workout, made up of your RMR (Katch-McArdle) plus non-exercise activity. On days with no logged workout, this is your full "Burn" for the day.</p>
 
         <h2>Workout days</h2>
         <p>When you log a workout, its estimated burn (kcal) is added on top of the baseline — scaled up by <span className="num">×1.10</span> to account for EPOC (the "afterburn" effect where your metabolism stays elevated for hours after exercise).</p>
