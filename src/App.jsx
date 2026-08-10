@@ -1301,13 +1301,6 @@ function CalcPage({ onBack, tdee = TDEE }) {
 }
 
 // ─── Frequently Eat Page ──────────────────────────────────────────────────────
-function perPiece(f) {
-  const m = f.serving?.match(/^(\d+(?:\.\d+)?)\s+piece/i);
-  if (!m) return null;
-  const n = parseFloat(m[1]);
-  return { n, cal: Math.round(f.calories / n), protein: Math.round((f.protein / n) * 10) / 10 };
-}
-
 function FrequentPage({ frequentFoods, onBack }) {
   const [search, setSearch] = useState("");
   const filtered = frequentFoods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
@@ -1331,17 +1324,14 @@ function FrequentPage({ frequentFoods, onBack }) {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(f => {
-              const pp = perPiece(f);
-              return (
-                <tr key={f.id}>
-                  <td>{f.name}</td>
-                  <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{pp ? "1 piece" : f.serving}</td>
-                  <td style={{ fontWeight: 500 }}>{pp ? pp.cal : f.calories}</td>
-                  <td style={{ color: "#6b5f52" }}>{pp ? `${pp.protein}g` : `${f.protein}g`}</td>
-                </tr>
-              );
-            })}
+            {filtered.map(f => (
+              <tr key={f.id}>
+                <td>{f.name}</td>
+                <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{f.serving}</td>
+                <td style={{ fontWeight: 500 }}>{f.calories}</td>
+                <td style={{ color: "#6b5f52" }}>{f.protein}g</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>
