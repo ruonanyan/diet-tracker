@@ -24,6 +24,11 @@ const SERVING_GRAMS = {
 const DEFAULT_PROFILE = { age: 35, gender: "female", weight_lbs: 156.0, height_in: 64, tdee: 1717, rhr: 64 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
+function fmtMacro(v) {
+  const n = parseFloat(v) || 0;
+  return n % 1 === 0 ? String(n) : n.toFixed(1);
+}
+
 function fmtHeight(inches) {
   return `${Math.floor(inches / 12)}'${inches % 12}"`;
 }
@@ -707,7 +712,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
         <div style={{ background: "#f0ebe3", borderRadius: 6, padding: "0.85rem", marginTop: "0.75rem" }}>
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#3d3228", marginBottom: "0.5rem", fontWeight: 600 }}>{aiResult.item}</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem", marginBottom: "0.75rem" }}>
-            {[["Cal", aiResult.calories], ["Protein", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
+            {[["Cal", aiResult.calories], ["Protein", `${fmtMacro(aiResult.protein)}g`], ["Carbs", `${fmtMacro(aiResult.carbs)}g`], ["Fat", `${fmtMacro(aiResult.fat)}g`]].map(([lbl, val]) => (
               <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.4rem", textAlign: "center" }}>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
                 <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
@@ -932,9 +937,9 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
                         <tr key={i} style={{ borderTop: "1px solid rgba(0,0,0,0.06)" }}>
                           <td style={{ padding: "0.25rem 0.3rem 0.25rem 0", color: "#4a4036", maxWidth: 130, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.name}</td>
                           <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.calories}</td>
-                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.protein}g</td>
-                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.carbs}g</td>
-                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{it.fat}g</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{fmtMacro(it.protein)}g</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{fmtMacro(it.carbs)}g</td>
+                          <td style={{ textAlign: "right", padding: "0.25rem 0 0.25rem 0.3rem", color: "#2c2418" }}>{fmtMacro(it.fat)}g</td>
                         </tr>
                       ))}
                     </tbody>
@@ -944,7 +949,7 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
               )}
               {/* Total row */}
               <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "0.4rem" }}>
-                {[["Cal", aiResult.calories], ["Prot", `${aiResult.protein}g`], ["Carbs", `${aiResult.carbs}g`], ["Fat", `${aiResult.fat}g`]].map(([lbl, val]) => (
+                {[["Cal", aiResult.calories], ["Prot", `${fmtMacro(aiResult.protein)}g`], ["Carbs", `${fmtMacro(aiResult.carbs)}g`], ["Fat", `${fmtMacro(aiResult.fat)}g`]].map(([lbl, val]) => (
                   <div key={lbl} style={{ background: "#fff", borderRadius: 4, padding: "0.35rem", textAlign: "center" }}>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", color: "#b5a898", letterSpacing: "0.08em", textTransform: "uppercase" }}>{lbl}</div>
                     <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#2c2418", fontWeight: 600 }}>{val}</div>
@@ -1329,7 +1334,7 @@ function FrequentPage({ frequentFoods, onBack }) {
                 <td>{f.name}</td>
                 <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{f.serving}</td>
                 <td style={{ fontWeight: 500 }}>{f.calories}</td>
-                <td style={{ color: "#6b5f52" }}>{f.protein}g</td>
+                <td style={{ color: "#6b5f52" }}>{fmtMacro(f.protein)}g</td>
               </tr>
             ))}
           </tbody>
