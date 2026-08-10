@@ -365,7 +365,7 @@ export default function App() {
           <button className="rules-link" onClick={() => setPage("profile")}>My profile</button>
         </div>
 
-        <HomeAIBox onLogged={fetchHome} profile={profile} tdee={tdee} />
+        <HomeAIBox onLogged={fetchHome} profile={profile} tdee={tdee} frequentFoods={frequentFoods} />
 
         {loading ? (
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#b5a898" }}>Loading…</div>
@@ -778,7 +778,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
 }
 
 // ─── Home AI Box ──────────────────────────────────────────────────────────────
-function HomeAIBox({ onLogged, profile, tdee }) {
+function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
   const today = fmtDate(new Date());
   const [aiText, setAiText] = useState("");
   const [aiResult, setAiResult] = useState(null);
@@ -805,10 +805,13 @@ function HomeAIBox({ onLogged, profile, tdee }) {
     setAiResult(null);
     setSavedMsg("");
     try {
+      const hasMY = /\bMY\b/.test(aiText);
+      const body = { description: aiText.trim(), userStats: profile };
+      if (hasMY && frequentFoods.length > 0) body.frequentFoods = frequentFoods;
       const res = await fetch('/api/parse-entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ description: aiText.trim(), userStats: profile }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to parse');

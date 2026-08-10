@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description, userStats } = req.body || {};
+  const { description, userStats, frequentFoods } = req.body || {};
   if (!description) {
     return res.status(400).json({ error: 'Description required' });
   }
@@ -15,6 +15,10 @@ export default async function handler(req, res) {
   const tdee = userStats?.tdee ?? 1717;
   const height_str = `${Math.floor(height_in / 12)}'${height_in % 12}"`;
   const weight_kg = (weight_lbs * 0.453592).toFixed(1);
+
+  const frequentFoodsBlock = frequentFoods?.length
+    ? `\nFrequent foods list (use EXACT macros for "MY [food]" references, scale proportionally for fractions):\n${frequentFoods.map(f => `- ${f.name}: ${f.calories} cal, ${f.protein}g protein, ${f.carbs ?? 0}g carbs, ${f.fat ?? 0}g fat`).join('\n')}\n`
+    : '';
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
@@ -35,7 +39,7 @@ export default async function handler(req, res) {
         role: 'user',
         content: `You are a nutrition and fitness expert. Determine if the following description is about FOOD/DRINK or a WORKOUT/EXERCISE, then return ONLY a JSON object — no explanation, no markdown.
 
-User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}. TDEE baseline: ${tdee} kcal/day.
+User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}. TDEE baseline: ${tdee} kcal/day.${frequentFoodsBlock}
 
 If it's FOOD, return:
 {"type": "food", "item": "concise food description", "calories": number, "protein": number, "carbs": number, "fat": number}
