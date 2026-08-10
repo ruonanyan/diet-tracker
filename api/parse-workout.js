@@ -25,13 +25,19 @@ export default async function handler(req, res) {
       max_tokens: 256,
       messages: [{
         role: 'user',
-        content: `You are a fitness expert. Estimate the extra calorie burn from this workout for a 35-year-old woman, 156 lbs, 5'4". Return ONLY a JSON object — no explanation, no markdown.
+        content: `You are a fitness expert. Estimate the extra calorie burn from this workout. Return ONLY a JSON object — no explanation, no markdown.
+
+User stats: female, age 35, 156 lbs (70.8 kg), 5'4" (163 cm).
+
+Calculation rules:
+- burn_value = calories burned FROM THE WORKOUT ONLY, not including the TDEE baseline of 1,717 kcal/day.
+- The app will apply ×1.10 EPOC multiplier on top of your estimate to account for afterburn effect, so do NOT include EPOC in your number.
+- If heart-rate zone minutes are given, use the Karvonen formula: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min.
+- If no zone data is given, estimate based on activity type, duration, and intensity described.
 
 Required fields:
 {"burn_value": number, "notes": "concise workout description"}
 
-burn_value = calories burned FROM THE WORKOUT ONLY (not including BMR/TDEE baseline).
-Use moderate intensity assumptions unless the description specifies otherwise.
 notes = short label like "45 min run + 20 min weights"
 
 Workout: "${description}"`

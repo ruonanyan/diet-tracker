@@ -27,7 +27,7 @@ export default async function handler(req, res) {
         role: 'user',
         content: `You are a nutrition and fitness expert. Determine if the following description is about FOOD/DRINK or a WORKOUT/EXERCISE, then return ONLY a JSON object — no explanation, no markdown.
 
-User stats: 35F, 156 lbs, 5'4".
+User stats: female, age 35, 156 lbs (70.8 kg), 5'4" (163 cm). TDEE baseline: 1,717 kcal/day.
 
 If it's FOOD, return:
 {"type": "food", "item": "concise food description", "calories": number, "protein": number, "carbs": number, "fat": number}
@@ -35,7 +35,12 @@ If it's FOOD, return:
 If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}
 
-burn_value = extra calories burned from the workout only (not including BMR/TDEE baseline of 1717).
+Workout calculation rules:
+- burn_value = calories burned FROM THE WORKOUT ONLY, not including the 1,717 kcal TDEE baseline.
+- The app will apply ×1.10 EPOC multiplier on top of your estimate, so do NOT include EPOC in your number.
+- If heart-rate zone minutes are given, use the Karvonen formula: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min.
+- If no zone data is given, estimate based on activity type, duration, and intensity.
+
 All numbers are integers.
 
 Description: "${description}"`
