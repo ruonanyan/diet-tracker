@@ -1134,19 +1134,28 @@ function WorkoutFormContent({ date, existing, profile, onSaved }) {
 }
 
 // ─── Profile Page ─────────────────────────────────────────────────────────────
-function ProfilePage({ profile, onBack, onSaved }) {
-  const [form, setForm] = useState({
-    age: String(profile.age),
-    gender: profile.gender,
-    weight_lbs: String(profile.weight_lbs),
-    height_ft: String(Math.floor(profile.height_in / 12)),
-    height_in_rem: String(profile.height_in % 12),
-    tdee: String(profile.tdee),
-    rhr: String(profile.rhr),
-  });
+function ProfilePage({ profile: fallbackProfile, onBack, onSaved }) {
+  const [form, setForm] = useState(null); // null = loading
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [history, setHistory] = useState([]);
+
+  // Always fetch latest from DB on open — never trust cached prop
+  useEffect(() => {
+    supabase.from("user_profile").select("*").eq("id", 1).single()
+      .then(({ data }) => {
+        const p = data || fallbackProfile;
+        setForm({
+          age: String(p.age),
+          gender: p.gender,
+          weight_lbs: String(p.weight_lbs),
+          height_ft: String(Math.floor(p.height_in / 12)),
+          height_in_rem: String(p.height_in % 12),
+          tdee: String(p.tdee),
+          rhr: String(p.rhr),
+        });
+      });
+  }, []);
 
   useEffect(() => {
     supabase.from("profile_history").select("*").order("recorded_at", { ascending: false }).limit(20)
@@ -1154,6 +1163,16 @@ function ProfilePage({ profile, onBack, onSaved }) {
   }, [saved]);
 
   function set(k, v) { setForm(p => ({ ...p, [k]: v })); setSaved(false); }
+
+  if (!form) return (
+    <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
+      <style>{GLOBAL_CSS}</style>
+      <div className="wrap">
+        <button className="back-link" onClick={onBack}>← Back</button>
+        <p style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#b5a898", marginTop: "2rem" }}>Loading…</p>
+      </div>
+    </div>
+  );
 
   async function save() {
     setSaving(true);
