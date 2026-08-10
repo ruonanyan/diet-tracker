@@ -1324,19 +1324,25 @@ function FrequentPage({ frequentFoods, onBack }) {
             <tr>
               <th style={{ textAlign: "left" }}>Food</th>
               <th>Serving</th>
+              <th>Grams</th>
               <th>Cal</th>
               <th>Protein</th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map(f => (
-              <tr key={f.id}>
-                <td>{f.name}</td>
-                <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{f.serving}</td>
-                <td style={{ fontWeight: 500 }}>{f.calories}</td>
-                <td style={{ color: "#6b5f52" }}>{fmtMacro(f.protein)}g</td>
-              </tr>
-            ))}
+            {filtered.map(f => {
+              const sg = f.serving_grams != null ? parseFloat(f.serving_grams) : null;
+              const sgStr = sg != null ? (sg % 1 === 0 ? `${sg}g` : `${sg}g`) : "";
+              return (
+                <tr key={f.id}>
+                  <td>{f.name}</td>
+                  <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{f.serving}</td>
+                  <td style={{ color: "#9a8f7e", fontSize: "0.75rem" }}>{sgStr}</td>
+                  <td style={{ fontWeight: 500 }}>{f.calories}</td>
+                  <td style={{ color: "#6b5f52" }}>{fmtMacro(f.protein)}g</td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       </div>
