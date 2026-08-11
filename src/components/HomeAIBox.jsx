@@ -28,6 +28,44 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
       ).slice(0, 6)
     : [];
 
+  function handleDeleteBackward(e) {
+    const sel = window.getSelection();
+    if (!sel?.rangeCount) return;
+    const range = sel.getRangeAt(0);
+    if (!range.collapsed) return;
+
+    const node = range.startContainer;
+    let chipToDelete = null;
+    let spaceToRemove = null;
+
+    if (range.startOffset === 0) {
+      // Cursor at start of node — chip might be the previous sibling
+      const prev = node.previousSibling ?? node.parentNode?.previousSibling;
+      if (prev?.nodeType === Node.ELEMENT_NODE && prev.classList?.contains("food-chip")) {
+        chipToDelete = prev;
+      }
+    } else if (
+      range.startOffset === 1 &&
+      node.nodeType === Node.TEXT_NODE &&
+      node.textContent.length === 1 &&
+      (node.textContent === " " || node.textContent === " ")
+    ) {
+      // Cursor is right after the trailing space we insert after each chip
+      const prev = node.previousSibling;
+      if (prev?.nodeType === Node.ELEMENT_NODE && prev.classList?.contains("food-chip")) {
+        chipToDelete = prev;
+        spaceToRemove = node;
+      }
+    }
+
+    if (chipToDelete) {
+      e.preventDefault();
+      if (spaceToRemove) spaceToRemove.remove();
+      chipToDelete.remove();
+      checkHasContent();
+    }
+  }
+
   function checkHasContent() {
     const ed = editorRef.current;
     if (!ed) return;
@@ -228,21 +266,10 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
           onInput={handleInput}
           onKeyDown={e => {
             if (e.key === "Escape") { setAtMatch(null); return; }
-            if (e.key === "Backspace") {
-              const sel = window.getSelection();
-              if (!sel?.rangeCount) return;
-              const range = sel.getRangeAt(0);
-              if (!range.collapsed) return;
-              if (range.startOffset === 0) {
-                const node = range.startContainer;
-                const prev = node.previousSibling ?? node.parentNode?.previousSibling;
-                if (prev?.nodeType === Node.ELEMENT_NODE && prev.classList?.contains("food-chip")) {
-                  e.preventDefault();
-                  prev.remove();
-                  checkHasContent();
-                }
-              }
-            }
+            if (e.key === "Backspace") handleDeleteBackward(e);
+          }}
+          onBeforeInput={e => {
+            if (e.inputType === "deleteContentBackward") handleDeleteBackward(e);
           }}
           style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, outline: "none", boxSizing: "border-box", minHeight: "7.8rem", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word", cursor: "text" }}
         />
