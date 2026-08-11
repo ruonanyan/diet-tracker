@@ -709,6 +709,9 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
   const [savedMsg, setSavedMsg] = useState("");
   const [date, setDate] = useState(today);
   const [atMatch, setAtMatch] = useState(null); // { start: number, query: string } | null
+  const [chips, setChips] = useState([]); // [{ id, food }]
+  const [replacingChipId, setReplacingChipId] = useState(null);
+  const [chipQuery, setChipQuery] = useState("");
   const textareaRef = useRef(null);
 
   const atFiltered = atMatch != null
@@ -740,20 +743,24 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
     if (atMatch == null) return;
     const before = aiText.slice(0, atMatch.start);
     const after = aiText.slice(atMatch.start + 1 + atMatch.query.length);
-    setAiText(before + f.name + after);
+    setAiText(before + after);
+    setChips(prev => [...prev, { id: `${Date.now()}_${f.id}`, food: f }]);
     setAtMatch(null);
     textareaRef.current?.focus();
   }
 
   async function parseWithAI() {
-    if (!aiText.trim()) return;
+    const chipText = chips.map(c => `${c.food.name} (${c.food.calories} cal, ${fmtMacro(c.food.protein)}g protein, ${c.food.carbs ?? 0}g carbs, ${c.food.fat ?? 0}g fat)`).join(', ');
+    const freeText = aiText.trim();
+    const description = [chipText, freeText].filter(Boolean).join('; ');
+    if (!description) return;
     setParsing(true);
     setAiError("");
     setAiResult(null);
     setSavedMsg("");
     setAtMatch(null);
     try {
-      const body = { description: aiText.trim(), userStats: profile };
+      const body = { description, userStats: profile };
       if (frequentFoods.length > 0) body.frequentFoods = frequentFoods;
       const res = await fetch('/api/parse-entry', {
         method: 'POST',
@@ -773,6 +780,7 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
     setAiText("");
     setAiResult(null);
     setSavedMsg("");
+    setChips([]);
   }
 
   async function logToday() {
@@ -821,6 +829,44 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
           style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
       </div>
 
+      {replacingChipId !== null && (
+        <div style={{ position: "fixed", inset: 0, zIndex: 199 }} onClick={() => { setReplacingChipId(null); setChipQuery(""); }} />
+      )}
+
+      {chips.length > 0 && (
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem", marginBottom: "0.6rem" }}>
+          {chips.map(c => (
+            <div key={c.id} style={{ position: "relative" }}>
+              <div style={{ display: "inline-flex", alignItems: "center", background: "#f0ebe3", border: "1px solid #d8c9b8", borderRadius: 20, padding: "0.25rem 0.5rem 0.25rem 0.7rem", gap: "0.35rem" }}>
+                <button onClick={() => { setReplacingChipId(c.id); setChipQuery(""); }}
+                  style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#b07d3a", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline", textDecorationStyle: "dotted" }}>
+                  {c.food.name}
+                </button>
+                <button onClick={() => setChips(prev => prev.filter(x => x.id !== c.id))}
+                  style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", color: "#b5a898", background: "none", border: "none", cursor: "pointer", padding: 0, lineHeight: 1 }}>×</button>
+              </div>
+              {replacingChipId === c.id && (
+                <div style={{ position: "absolute", top: "100%", left: 0, background: "#fff", border: "1px solid #d8d0c4", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.10)", zIndex: 200, minWidth: 260, maxHeight: 240, overflowY: "auto", marginTop: 2 }}>
+                  <input type="text" value={chipQuery} onChange={e => setChipQuery(e.target.value)}
+                    autoFocus placeholder="Search…"
+                    style={{ width: "100%", padding: "0.5rem 0.75rem", border: "none", borderBottom: "1px solid #f0ebe3", fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", outline: "none", background: "#faf8f5", boxSizing: "border-box" }} />
+                  {frequentFoods.filter(f => chipQuery === "" || f.name.toLowerCase().includes(chipQuery.toLowerCase())).slice(0, 6).map(f => (
+                    <button key={f.id}
+                      onMouseDown={e => { e.preventDefault(); setChips(prev => prev.map(x => x.id === c.id ? { ...x, food: f } : x)); setReplacingChipId(null); setChipQuery(""); }}
+                      style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", width: "100%", textAlign: "left", padding: "0.55rem 0.75rem", background: "none", border: "none", borderBottom: "1px solid #f0ebe3", cursor: "pointer", fontFamily: "'DM Mono', monospace" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "#f7f4ef"}
+                      onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                      <span style={{ fontSize: "0.78rem", color: "#3d3228", fontWeight: 600 }}>{f.name}</span>
+                      <span style={{ fontSize: "0.65rem", color: "#b5a898", marginLeft: "auto", flexShrink: 0 }}>{f.calories} cal · {fmtMacro(f.protein)}g protein</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       <div style={{ position: "relative", marginBottom: "0.6rem" }}>
         <textarea
           ref={textareaRef}
@@ -848,8 +894,8 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
 
       <button
         onClick={parseWithAI}
-        disabled={!aiText.trim() || parsing}
-        style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", letterSpacing: "0.06em", background: aiText.trim() && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: aiText.trim() && !parsing ? "pointer" : "not-allowed" }}>
+        disabled={(!aiText.trim() && chips.length === 0) || parsing}
+        style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", letterSpacing: "0.06em", background: (aiText.trim() || chips.length > 0) && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: (aiText.trim() || chips.length > 0) && !parsing ? "pointer" : "not-allowed" }}>
         {parsing ? "Thinking…" : "✦ Submit"}
       </button>
 
