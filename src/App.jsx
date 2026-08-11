@@ -225,7 +225,7 @@ function SummaryTable({ rows, workoutsMap, tdee, onOpenDay }) {
                   {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
                 </span>
               </td>
-              <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem" }}>{protein}g</td>
+              <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem" }}>{fmtMacro(protein)}g</td>
             </tr>
           );
         })}
@@ -531,7 +531,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, profile, onCl
                 </div>
                 <div className="stat-card">
                   <div className="stat-label">Protein</div>
-                  <div className="stat-val">{totalProtein}g</div>
+                  <div className="stat-val">{fmtMacro(totalProtein)}g</div>
                   <div className="stat-sub">{PROTEIN_TARGET}–{PROTEIN_TARGET + 10}g</div>
                 </div>
               </div>
@@ -556,7 +556,7 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, profile, onCl
                       {grouped[meal].map(e => (
                         <div key={e.id} className="sheet-entry">
                           <div className="sheet-name">{e.item}</div>
-                          <span className="sheet-protein">{e.protein}g</span>
+                          <span className="sheet-protein">{fmtMacro(e.protein)}g</span>
                           <span className="sheet-cal">{e.calories}</span>
                           <button className="sheet-del" onClick={() => deleteEntry(e.id)}>×</button>
                         </div>
@@ -740,7 +740,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
             style={{ padding: "0.5rem 0.65rem", borderRadius: 4, marginBottom: "0.2rem", cursor: "pointer", background: selected?.id === f.id ? "#eee9e0" : "#fff", border: `1px solid ${selected?.id === f.id ? "#b89880" : "transparent"}` }}>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.8rem", color: "#3d3228" }}>{f.name}</div>
             <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#b5a898", marginTop: "0.1rem" }}>
-              {f.serving && <>{f.serving} · </>}{f.calories} cal · {f.protein}g protein
+              {f.serving && <>{f.serving} · </>}{f.calories} cal · {fmtMacro(f.protein)}g protein
             </div>
           </div>
         ))}
