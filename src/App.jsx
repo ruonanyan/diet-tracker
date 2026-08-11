@@ -761,8 +761,8 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
     chip.dataset.fat = String(f.fat ?? 0);
     Object.assign(chip.style, {
       display: "inline-flex", alignItems: "center", background: "#f0ebe3",
-      border: "1px solid #d8c9b8", borderRadius: "12px", padding: "0 5px 0 8px",
-      gap: "3px", verticalAlign: "middle", lineHeight: "1.8", margin: "0 1px", userSelect: "none",
+      border: "1px solid #d8c9b8", borderRadius: "12px", padding: "1px 8px",
+      verticalAlign: "middle", lineHeight: "1.8", margin: "0 1px", userSelect: "none",
     });
     const nameBtn = document.createElement("button");
     nameBtn.textContent = f.name;
@@ -776,15 +776,7 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
       setChipReplacing({ el: chip, top: rect.bottom + window.scrollY, left: rect.left + window.scrollX });
       setChipQuery("");
     });
-    const closeBtn = document.createElement("button");
-    closeBtn.textContent = "×";
-    Object.assign(closeBtn.style, {
-      fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", color: "#b5a898",
-      background: "none", border: "none", cursor: "pointer", padding: "0", lineHeight: "1",
-    });
-    closeBtn.addEventListener("click", () => { chip.remove(); checkHasContent(); });
     chip.appendChild(nameBtn);
-    chip.appendChild(closeBtn);
     return chip;
   }
 
@@ -908,7 +900,7 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
   const isWorkout = aiResult?.type === "workout";
 
   return (
-    <div style={{ marginBottom: "1.5rem", background: "#fff", border: "1px solid #e8e2d8", borderRadius: 8, padding: "1rem 1.1rem" }}>
+    <div style={{ marginBottom: "1.5rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.6rem" }}>
         <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#b5a898" }}>✦ Quick Log</span>
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
@@ -940,7 +932,24 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
           contentEditable="true"
           suppressContentEditableWarning={true}
           onInput={handleInput}
-          onKeyDown={e => { if (e.key === "Escape") setAtMatch(null); }}
+          onKeyDown={e => {
+            if (e.key === "Escape") { setAtMatch(null); return; }
+            if (e.key === "Backspace") {
+              const sel = window.getSelection();
+              if (!sel?.rangeCount) return;
+              const range = sel.getRangeAt(0);
+              if (!range.collapsed) return;
+              if (range.startOffset === 0) {
+                const node = range.startContainer;
+                const prev = node.previousSibling ?? node.parentNode?.previousSibling;
+                if (prev?.nodeType === Node.ELEMENT_NODE && prev.classList?.contains("food-chip")) {
+                  e.preventDefault();
+                  prev.remove();
+                  checkHasContent();
+                }
+              }
+            }
+          }}
           style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, outline: "none", boxSizing: "border-box", minHeight: "7.8rem", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word", cursor: "text" }}
         />
         {!hasContent && (
