@@ -3,9 +3,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description, userStats, frequentFoods } = req.body || {};
-  if (!description) {
-    return res.status(400).json({ error: 'Description required' });
+  const { description, userStats, frequentFoods, imageBase64, imageMediaType } = req.body || {};
+  if (!description && !imageBase64) {
+    return res.status(400).json({ error: 'Description or image required' });
   }
 
   const age = userStats?.age ?? 35;
@@ -37,7 +37,8 @@ export default async function handler(req, res) {
       max_tokens: 600,
       messages: [{
         role: 'user',
-        content: `You are a nutrition and fitness expert. Determine if the following description is about FOOD/DRINK or a WORKOUT/EXERCISE, then return ONLY a JSON object — no explanation, no markdown.
+        content: (() => {
+          const prompt = `You are a nutrition and fitness expert. Determine if the following is about FOOD/DRINK or a WORKOUT/EXERCISE, then return ONLY a JSON object — no explanation, no markdown.
 
 User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}. TDEE baseline: ${tdee} kcal/day.${frequentFoodsBlock}
 
@@ -49,6 +50,7 @@ Rules for the "items" array:
 - The top-level calories/protein/carbs/fat MUST equal the sum of all items.
 - If only one food is mentioned, items has exactly one entry.
 - If a food matches or closely resembles any item in the frequent foods list above, use those EXACT macros (including for "MY [food]" shorthand). Scale proportionally for fractions or multiples.
+- If an image is provided, identify all visible food items and estimate portions from visual cues.
 
 If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}
@@ -60,8 +62,16 @@ Workout calculation rules:
 - If no zone data is given, estimate based on activity type, duration, and intensity.
 
 All numbers are integers.
+${description ? `\nText description: "${description}"` : ''}`;
 
-Description: "${description}"`
+          if (imageBase64) {
+            return [
+              { type: 'image', source: { type: 'base64', media_type: imageMediaType || 'image/jpeg', data: imageBase64 } },
+              { type: 'text', text: prompt },
+            ];
+          }
+          return prompt;
+        })()
       }]
     })
   });

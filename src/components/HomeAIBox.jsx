@@ -15,6 +15,8 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   const [chipQuery, setChipQuery] = useState("");
   const [hasContent, setHasContent] = useState(false);
   const editorRef = useRef(null);
+  const fileInputRef = useRef(null);
+  const [photo, setPhoto] = useState(null); // { base64, mediaType, previewUrl }
 
   const atFiltered = atMatch
     ? frequentFoods.filter(f =>
@@ -69,7 +71,27 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   function checkHasContent() {
     const ed = editorRef.current;
     if (!ed) return;
-    setHasContent(ed.textContent.trim().length > 0 || !!ed.querySelector(".food-chip"));
+    setHasContent(ed.textContent.trim().length > 0 || !!ed.querySelector(".food-chip") || !!photo);
+  }
+
+  function handlePhotoSelect(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      const [header, base64] = dataUrl.split(",");
+      const mediaType = header.match(/data:([^;]+)/)[1];
+      setPhoto({ base64, mediaType, previewUrl: dataUrl });
+      setHasContent(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  }
+
+  function removePhoto() {
+    setPhoto(null);
+    checkHasContent();
   }
 
   function handleInput() {
@@ -176,11 +198,12 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
 
   async function parseWithAI() {
     const description = getDescription();
-    if (!description) return;
+    if (!description && !photo) return;
     setParsing(true); setAiError(""); setAiResult(null); setSavedMsg(""); setAtMatch(null);
     try {
       const body = { description, userStats: profile };
       if (frequentFoods.length > 0) body.frequentFoods = frequentFoods;
+      if (photo) { body.imageBase64 = photo.base64; body.imageMediaType = photo.mediaType; }
       const res = await fetch("/api/parse-entry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -196,7 +219,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   function reset() {
     if (editorRef.current) editorRef.current.innerHTML = "";
     setAiResult(null); setSavedMsg(""); setHasContent(false);
-    setAtMatch(null); setChipReplacing(null);
+    setAtMatch(null); setChipReplacing(null); setPhoto(null);
   }
 
   async function logToday() {
@@ -290,6 +313,25 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
               </button>
             ))}
           </div>
+        )}
+      </div>
+
+      {/* hidden file input */}
+      <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
+        style={{ display: "none" }} onChange={handlePhotoSelect} />
+
+      {/* photo preview or camera button */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem" }}>
+        {photo ? (
+          <div style={{ position: "relative", display: "inline-flex" }}>
+            <img src={photo.previewUrl} alt="food" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 6, border: "1px solid #d8c9b8" }} />
+            <button onClick={removePhoto} style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#b84040", border: "none", color: "#fff", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
+          </div>
+        ) : (
+          <button onClick={() => fileInputRef.current?.click()}
+            style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#9a8f7e", background: "none", border: "1px solid #d8c9b8", borderRadius: 4, padding: "0.3rem 0.65rem", cursor: "pointer", letterSpacing: "0.04em" }}>
+            📷 Add photo
+          </button>
         )}
       </div>
 
