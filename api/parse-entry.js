@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   const weight_kg = (weight_lbs * 0.453592).toFixed(1);
 
   const frequentFoodsBlock = frequentFoods?.length
-    ? `\nFrequent foods list (use EXACT macros for "MY [food]" references, scale proportionally for fractions):\n${frequentFoods.map(f => `- ${f.name}: ${f.calories} cal, ${f.protein}g protein, ${f.carbs ?? 0}g carbs, ${f.fat ?? 0}g fat`).join('\n')}\n`
+    ? `\nFrequent foods list — if ANY food mentioned closely matches an item here (including "MY [food]" shorthand, casual names, or abbreviations), use EXACT macros from the list rather than estimating. Scale proportionally for fractions or multiples (e.g. "half" = ÷2, "2x" = ×2):\n${frequentFoods.map(f => `- ${f.name}: ${f.calories} cal, ${f.protein}g protein, ${f.carbs ?? 0}g carbs, ${f.fat ?? 0}g fat`).join('\n')}\n`
     : '';
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -48,7 +48,7 @@ Rules for the "items" array:
 - Break down EVERY distinct ingredient or component into its own entry.
 - The top-level calories/protein/carbs/fat MUST equal the sum of all items.
 - If only one food is mentioned, items has exactly one entry.
-- For "MY [food]" references, use the exact macros from the frequent foods list above.
+- If a food matches or closely resembles any item in the frequent foods list above, use those EXACT macros (including for "MY [food]" shorthand). Scale proportionally for fractions or multiples.
 
 If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}

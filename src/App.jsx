@@ -708,6 +708,42 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
   const [saving, setSaving] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [date, setDate] = useState(today);
+  const [atMatch, setAtMatch] = useState(null); // { start: number, query: string } | null
+  const textareaRef = useRef(null);
+
+  const atFiltered = atMatch != null
+    ? frequentFoods.filter(f =>
+        atMatch.query === "" || f.name.toLowerCase().includes(atMatch.query.toLowerCase())
+      ).slice(0, 6)
+    : [];
+
+  function handleTextChange(e) {
+    const val = e.target.value;
+    setAiText(val);
+    setAiResult(null);
+    setAiError("");
+    setSavedMsg("");
+    const cursor = e.target.selectionStart ?? val.length;
+    const textBefore = val.slice(0, cursor);
+    const atIdx = textBefore.lastIndexOf('@');
+    if (atIdx !== -1) {
+      const query = textBefore.slice(atIdx + 1);
+      if (!query.includes(' ') && !query.includes('\n')) {
+        setAtMatch({ start: atIdx, query });
+        return;
+      }
+    }
+    setAtMatch(null);
+  }
+
+  function insertFood(f) {
+    if (atMatch == null) return;
+    const before = aiText.slice(0, atMatch.start);
+    const after = aiText.slice(atMatch.start + 1 + atMatch.query.length);
+    setAiText(before + f.name + after);
+    setAtMatch(null);
+    textareaRef.current?.focus();
+  }
 
   async function parseWithAI() {
     if (!aiText.trim()) return;
@@ -715,10 +751,10 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
     setAiError("");
     setAiResult(null);
     setSavedMsg("");
+    setAtMatch(null);
     try {
-      const hasMY = /\bMY\b/.test(aiText);
       const body = { description: aiText.trim(), userStats: profile };
-      if (hasMY && frequentFoods.length > 0) body.frequentFoods = frequentFoods;
+      if (frequentFoods.length > 0) body.frequentFoods = frequentFoods;
       const res = await fetch('/api/parse-entry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -785,13 +821,30 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
           style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
       </div>
 
-      <textarea
-        placeholder="Describe food, a workout, or a new frequent food to save…"
-        value={aiText}
-        onChange={e => { setAiText(e.target.value); setAiResult(null); setAiError(""); setSavedMsg(""); }}
-        rows={6}
-        style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box", marginBottom: "0.6rem" }}
-      />
+      <div style={{ position: "relative", marginBottom: "0.6rem" }}>
+        <textarea
+          ref={textareaRef}
+          placeholder="Describe food or a workout… type @ to pick from frequent foods"
+          value={aiText}
+          onChange={handleTextChange}
+          onKeyDown={e => { if (e.key === 'Escape') setAtMatch(null); }}
+          rows={6}
+          style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, resize: "none", outline: "none", boxSizing: "border-box" }}
+        />
+        {atMatch != null && atFiltered.length > 0 && (
+          <div style={{ position: "absolute", left: 0, right: 0, top: "100%", background: "#fff", border: "1px solid #d8d0c4", borderRadius: 6, boxShadow: "0 4px 16px rgba(0,0,0,0.10)", zIndex: 200, maxHeight: 220, overflowY: "auto" }}>
+            {atFiltered.map(f => (
+              <button key={f.id} onMouseDown={e => { e.preventDefault(); insertFood(f); }}
+                style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", width: "100%", textAlign: "left", padding: "0.55rem 0.75rem", background: "none", border: "none", borderBottom: "1px solid #f0ebe3", cursor: "pointer", fontFamily: "'DM Mono', monospace" }}
+                onMouseEnter={e => e.currentTarget.style.background = "#f7f4ef"}
+                onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                <span style={{ fontSize: "0.78rem", color: "#3d3228", fontWeight: 600 }}>{f.name}</span>
+                <span style={{ fontSize: "0.65rem", color: "#b5a898", marginLeft: "auto", flexShrink: 0 }}>{f.calories} cal · {fmtMacro(f.protein)}g protein</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
 
       <button
         onClick={parseWithAI}
