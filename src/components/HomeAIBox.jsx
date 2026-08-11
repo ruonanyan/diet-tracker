@@ -317,7 +317,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
       </div>
 
       {/* hidden file input */}
-      <input ref={fileInputRef} type="file" accept="image/*" capture="environment"
+      <input ref={fileInputRef} type="file" accept="image/*"
         style={{ display: "none" }} onChange={handlePhotoSelect} />
 
       {/* photo preview or camera button */}
