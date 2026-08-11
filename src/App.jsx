@@ -463,8 +463,8 @@ function DayPage({ date: initialDate, workoutsMap, frequentFoods, profile, onClo
       <style>{GLOBAL_CSS}</style>
       <div className="wrap">
         {/* Header */}
+        <button className="back-link" onClick={onClose}>← Back</button>
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.25rem" }}>
-          <button className="back-link" onClick={onClose} style={{ marginBottom: 0 }}>←</button>
           <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
           <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.05rem", flex: 1, textAlign: "center", color: "#2c2418" }}>{displayFull(date)}</div>
           <button className="sheet-nav-btn" disabled={date >= today} onClick={() => setDate(d => shiftDate(d, 1))}>›</button>
