@@ -281,7 +281,7 @@ function AllEntriesPage({ summaries, workoutsMap, profile, onBack, onOpenDay }) 
       </div>
 
       {dayOpen && selectedDate && (
-        <DaySheet
+        <DayPage
           date={selectedDate}
           workoutsMap={workoutsMap}
           frequentFoods={[]}
@@ -348,6 +348,7 @@ export default function App() {
   if (page === "frequent") return <FrequentPage frequentFoods={frequentFoods} onBack={() => setPage(null)} />;
   if (page === "profile") return <ProfilePage profile={profile} onBack={() => setPage(null)} onSaved={p => { setProfile(p); setPage(null); }} />;
   if (page === "all") return <AllEntriesPage summaries={summaries} workoutsMap={workoutsMap} profile={profile} onBack={() => setPage(null)} onOpenDay={openDay} />;
+  if (dayOpen) return <DayPage date={selectedDate} workoutsMap={workoutsMap} frequentFoods={frequentFoods} profile={profile} onClose={() => { setDayOpen(false); fetchHome(); }} />;
   if (page === "smoothie") return (
     <SmoothiePage
       frequentFoods={frequentFoods}
@@ -388,76 +389,20 @@ export default function App() {
         )}
       </div>
 
-      {dayOpen && (
-        <DaySheet
-          date={selectedDate}
-          workoutsMap={workoutsMap}
-          frequentFoods={frequentFoods}
-          profile={profile}
-          onClose={() => { setDayOpen(false); fetchHome(); }}
-        />
-      )}
     </div>
   );
 }
 
-// ─── Day Sheet ────────────────────────────────────────────────────────────────
-function DaySheet({ date: initialDate, workoutsMap, frequentFoods, profile, onClose }) {
+// ─── Day Page ─────────────────────────────────────────────────────────────────
+function DayPage({ date: initialDate, workoutsMap, frequentFoods, profile, onClose }) {
   const today = fmtDate(new Date());
   const [date, setDate] = useState(initialDate);
   const [entries, setEntries] = useState([]);
   const [workout, setWorkout] = useState(null);
   const [loading, setLoading] = useState(true);
   const [subPage, setSubPage] = useState(null); // null | "food" | "workout"
-  const [subPageActive, setSubPageActive] = useState(false);
-  const [open, setOpen] = useState(false);
-  const sheetRef = useRef(null);
-  const dragStartY = useRef(null);
-  const dragCurrentY = useRef(null);
 
-  // Slide up on mount
-  useEffect(() => { requestAnimationFrame(() => setOpen(true)); }, []);
-
-  function closeSheet() {
-    setOpen(false);
-    setTimeout(onClose, 320);
-  }
-
-  function openSubPage(type) {
-    setSubPage(type);
-    requestAnimationFrame(() => setSubPageActive(true));
-  }
-
-  function closeSubPage() {
-    setSubPageActive(false);
-    setTimeout(() => setSubPage(null), 320);
-  }
-
-  function onTouchStart(e) {
-    dragStartY.current = e.touches[0].clientY;
-    dragCurrentY.current = e.touches[0].clientY;
-  }
-  function onTouchMove(e) {
-    if (dragStartY.current === null) return;
-    e.preventDefault();
-    dragCurrentY.current = e.touches[0].clientY;
-    const dy = dragCurrentY.current - dragStartY.current;
-    if (dy > 0) {
-      sheetRef.current.style.transform = `translateY(${dy}px)`;
-      sheetRef.current.style.transition = "none";
-    }
-  }
-  function onTouchEnd() {
-    if (dragStartY.current === null) return;
-    const dy = dragCurrentY.current - dragStartY.current;
-    sheetRef.current.style.transition = "";
-    if (dy > 80) {
-      closeSheet();
-    } else {
-      sheetRef.current.style.transform = "translateY(0)";
-    }
-    dragStartY.current = null;
-  }
+  useEffect(() => { window.scrollTo(0, 0); }, []);
 
   const fetchDay = useCallback(async (d) => {
     setLoading(true);
@@ -474,18 +419,9 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, profile, onCl
 
   const tdee = profile?.tdee ?? TDEE;
   const totalCals = entries.reduce((s, e) => s + (e.calories || 0), 0);
-  const totalProtein = entries.reduce((s, e) => s + (e.protein || 0), 0);
+  const totalProtein = entries.reduce((s, e) => s + (parseFloat(e.protein) || 0), 0);
   const burn = tdee + (workout ? workout.burn_value : 0);
   const deficit = burn - totalCals;
-
-  const grouped = {};
-  for (const e of entries) {
-    const t = e.time || "other";
-    if (!grouped[t]) grouped[t] = [];
-    grouped[t].push(e);
-  }
-  const activeMeals = [...MEAL_TIMES, "other"].filter(m => grouped[m]);
-  const showMealLabels = activeMeals.length > 1;
 
   async function deleteEntry(id) {
     if (!window.confirm("Remove this entry?")) return;
@@ -493,106 +429,94 @@ function DaySheet({ date: initialDate, workoutsMap, frequentFoods, profile, onCl
     fetchDay(date);
   }
 
-  return (
-    <>
-      <div className={`overlay${open ? "" : " hidden"}`} onClick={closeSheet} />
-      <div className="sheet" ref={sheetRef} style={{ transform: open ? "translateY(0)" : "translateY(100%)", transition: "transform 0.35s cubic-bezier(0.32, 0.72, 0, 1)" }}>
-        <div className="sheet-handle-zone"
-          onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-          <div className="sheet-handle" />
-        </div>
+  function goBack() { setSubPage(null); fetchDay(date); }
 
-        {/* Horizontal slide container */}
-        <div style={{ overflow: "hidden" }}>
-          <div style={{ display: "flex", width: "200%", transform: subPageActive ? "translateX(-50%)" : "translateX(0)", transition: "transform 0.32s cubic-bezier(0.32, 0.72, 0, 1)", willChange: "transform" }}>
-
-            {/* Panel 1: Main content */}
-            <div className="sheet-panel">
-              <div className="sheet-nav">
-                <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
-                <div className="sheet-date">{displayFull(date)}</div>
-                <button className="sheet-nav-btn" disabled={date >= today} onClick={() => setDate(d => shiftDate(d, 1))}>›</button>
-              </div>
-
-              <div className="sheet-stats">
-                <div className="stat-card">
-                  <div className="stat-label">Eaten</div>
-                  <div className="stat-val amber">{totalCals.toLocaleString()}</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-label">Burn</div>
-                  <div className="stat-val amber">{burn.toLocaleString()}</div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-label">Deficit</div>
-                  <div className={`stat-val ${deficit >= 0 ? "green" : "red"}`}>
-                    {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
-                  </div>
-                </div>
-                <div className="stat-card">
-                  <div className="stat-label">Protein</div>
-                  <div className="stat-val">{fmtMacro(totalProtein)}g</div>
-                  <div className="stat-sub">{PROTEIN_TARGET}–{PROTEIN_TARGET + 10}g</div>
-                </div>
-              </div>
-
-              {workout ? (
-                <div className="workout-row">
-                  <span className="workout-label">💪 +{workout.burn_value} cal{workout.notes ? ` · ${workout.notes}` : ""}</span>
-                  <button className="workout-edit-btn" onClick={() => openSubPage("workout")}>Edit</button>
-                </div>
-              ) : (
-                <button className="log-workout-btn" onClick={() => openSubPage("workout")}>+ Log Workout</button>
-              )}
-
-              {loading ? (
-                <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "0.75rem 0" }}>Loading…</div>
-              ) : (
-                <>
-                  {entries.length > 0 && <div className="section-label">Food Entries</div>}
-                  {activeMeals.map(meal => (
-                    <div key={meal}>
-                      {showMealLabels && <div className="meal-label">{meal}</div>}
-                      {grouped[meal].map(e => (
-                        <div key={e.id} className="sheet-entry">
-                          <div className="sheet-name">{e.item}</div>
-                          <span className="sheet-protein">{fmtMacro(e.protein)}g</span>
-                          <span className="sheet-cal">{e.calories}</span>
-                          <button className="sheet-del" onClick={() => deleteEntry(e.id)}>×</button>
-                        </div>
-                      ))}
-                    </div>
-                  ))}
-                  {entries.length === 0 && <div className="sheet-empty">No entries yet</div>}
-                </>
-              )}
-
-              <button className="sheet-add-btn" onClick={() => openSubPage("food")}>+ Add Entry</button>
-            </div>
-
-            {/* Panel 2: Sub-page form */}
-            <div className="sheet-panel">
-              <button className="back-link" onClick={closeSubPage} style={{ marginBottom: "1.25rem" }}>← Back</button>
-              {subPage === "food" && (
-                <AddFormContent date={date} frequentFoods={frequentFoods}
-                  onSaved={() => { closeSubPage(); fetchDay(date); }} />
-              )}
-              {subPage === "workout" && (
-                <WorkoutFormContent date={date} existing={workout} profile={profile}
-                  onSaved={() => { closeSubPage(); fetchDay(date); }} />
-              )}
-            </div>
-
-          </div>
-        </div>
+  if (subPage === "food") return (
+    <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
+      <style>{GLOBAL_CSS}</style>
+      <div className="wrap">
+        <button className="back-link" onClick={goBack}>← Back</button>
+        <AddFormContent date={date} frequentFoods={frequentFoods} onSaved={goBack} />
       </div>
-    </>
+    </div>
+  );
+
+  if (subPage === "workout") return (
+    <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
+      <style>{GLOBAL_CSS}</style>
+      <div className="wrap">
+        <button className="back-link" onClick={goBack}>← Back</button>
+        <WorkoutFormContent date={date} existing={workout} profile={profile} onSaved={goBack} />
+      </div>
+    </div>
+  );
+
+  const stats = [
+    { label: "Eaten",   val: totalCals.toLocaleString(),                          color: "#b07d3a" },
+    { label: "Burn",    val: burn.toLocaleString(),                               color: "#b07d3a" },
+    { label: "Deficit", val: (deficit >= 0 ? "−" : "+") + Math.abs(deficit),     color: deficit >= 0 ? "#3a7d44" : "#b84040" },
+    { label: "Protein", val: fmtMacro(totalProtein) + "g",                        color: "#2c2418", sub: `${PROTEIN_TARGET}–${PROTEIN_TARGET + 10}g` },
+  ];
+
+  return (
+    <div style={{ minHeight: "100vh", background: "#f7f4ef" }}>
+      <style>{GLOBAL_CSS}</style>
+      <div className="wrap">
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "1.25rem" }}>
+          <button className="back-link" onClick={onClose} style={{ marginBottom: 0 }}>←</button>
+          <button className="sheet-nav-btn" onClick={() => setDate(d => shiftDate(d, -1))}>‹</button>
+          <div style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: "1.05rem", flex: 1, textAlign: "center", color: "#2c2418" }}>{displayFull(date)}</div>
+          <button className="sheet-nav-btn" disabled={date >= today} onClick={() => setDate(d => shiftDate(d, 1))}>›</button>
+        </div>
+
+        {/* Compact stats row */}
+        <div style={{ display: "flex", gap: "0.4rem", marginBottom: "1rem" }}>
+          {stats.map(({ label, val, color, sub }) => (
+            <div key={label} style={{ flex: 1, background: "#fff", border: "1px solid #e8e2d8", borderRadius: 6, padding: "0.4rem 0.5rem" }}>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#b5a898", marginBottom: "0.15rem" }}>{label}</div>
+              <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem", fontWeight: 600, color }}>{val}</div>
+              {sub && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.55rem", color: "#b5a898", marginTop: "0.1rem" }}>{sub}</div>}
+            </div>
+          ))}
+        </div>
+
+        {/* Workout */}
+        {workout ? (
+          <div className="workout-row">
+            <span className="workout-label">💪 +{workout.burn_value} cal{workout.notes ? ` · ${workout.notes}` : ""}</span>
+            <button className="workout-edit-btn" onClick={() => setSubPage("workout")}>Edit</button>
+          </div>
+        ) : (
+          <button className="log-workout-btn" onClick={() => setSubPage("workout")}>+ Log Workout</button>
+        )}
+
+        {/* Food entries */}
+        {loading ? (
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "0.75rem 0" }}>Loading…</div>
+        ) : (
+          <>
+            {entries.length > 0 && <div className="section-label">Food Entries</div>}
+            {entries.map(e => (
+              <div key={e.id} className="sheet-entry">
+                <div className="sheet-name">{e.item}</div>
+                <span className="sheet-protein">{fmtMacro(e.protein)}g</span>
+                <span className="sheet-cal">{e.calories}</span>
+                <button className="sheet-del" onClick={() => deleteEntry(e.id)}>×</button>
+              </div>
+            ))}
+            {entries.length === 0 && <div className="sheet-empty">No entries yet</div>}
+          </>
+        )}
+
+        <button className="sheet-add-btn" onClick={() => setSubPage("food")}>+ Add Entry</button>
+      </div>
+    </div>
   );
 }
 
 // ─── Add Food Form Content ────────────────────────────────────────────────────
 function AddFormContent({ date, frequentFoods, onSaved }) {
-  const [mealTime, setMealTime] = useState("lunch");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(null);
   const [servings, setServings] = useState("1");
@@ -615,7 +539,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
     setSaving(true);
     const suffix = s !== 1 ? ` ×${s}` : "";
     await supabase.from("food_log").insert({
-      date, time: mealTime,
+      date,
       item: `${selected.name}${suffix}${selected.serving ? ` (${selected.serving})` : ""}`,
       calories: previewCal,
       protein: Math.round((parseFloat(selected.protein) || 0) * s * 10) / 10,
@@ -629,7 +553,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
     if (!custom.item.trim()) { setError("Description is required"); return; }
     setSaving(true);
     await supabase.from("food_log").insert({
-      date, time: mealTime, item: custom.item.trim(),
+      date, item: custom.item.trim(),
       calories: parseInt(custom.calories) || 0, protein: parseInt(custom.protein) || 0,
       carbs: parseInt(custom.carbs) || 0, fat: parseInt(custom.fat) || 0,
     });
@@ -660,7 +584,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
     if (!aiResult) return;
     setSaving(true);
     await supabase.from("food_log").insert({
-      date, time: mealTime,
+      date,
       item: aiResult.item,
       calories: aiResult.calories || 0,
       protein: aiResult.protein || 0,
@@ -682,15 +606,6 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
     <>
       <div className="section-label" style={{ marginBottom: "0.75rem" }}>Add Entry</div>
 
-      <div className="section-label">Meal Time</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem", marginBottom: "1rem" }}>
-        {MEAL_TIMES.map(t => (
-          <button key={t} onClick={() => setMealTime(t)}
-            style={{ padding: "0.28rem 0.65rem", borderRadius: 20, border: "none", cursor: "pointer", fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", background: mealTime === t ? "#3d3228" : "#e8e2d8", color: mealTime === t ? "#fff" : "#6b5f52" }}>
-            {t}
-          </button>
-        ))}
-      </div>
 
       {/* ── AI ── */}
       <textarea
@@ -794,16 +709,6 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
   const [savedMsg, setSavedMsg] = useState("");
   const [date, setDate] = useState(today);
 
-  function getMealTime() {
-    const h = new Date().getHours();
-    if (h < 10) return "morning";
-    if (h < 12) return "midday";
-    if (h < 15) return "lunch";
-    if (h < 17) return "afternoon";
-    if (h < 21) return "dinner";
-    return "evening";
-  }
-
   async function parseWithAI() {
     if (!aiText.trim()) return;
     setParsing(true);
@@ -841,7 +746,7 @@ function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] }) {
       await supabase.from("workouts").insert({ date, burn_value: aiResult.burn_value, notes: aiResult.notes });
     } else {
       await supabase.from("food_log").insert({
-        date, time: getMealTime(),
+        date,
         item: aiResult.item,
         calories: aiResult.calories || 0,
         protein: aiResult.protein || 0,
@@ -1423,7 +1328,7 @@ function SmoothiePage({ frequentFoods, todayCals, todayProtein, todayBurn, onBac
     setLogged(true);
     // Also log to Supabase
     setSaving(true);
-    await supabase.from("food_log").insert({ date: today, time: "morning", item: text, calories: smoothieCals, protein: smoothieProtein, carbs: 0, fat: 0 });
+    await supabase.from("food_log").insert({ date: today, item: text, calories: smoothieCals, protein: smoothieProtein, carbs: 0, fat: 0 });
     setSaving(false);
   }
 
