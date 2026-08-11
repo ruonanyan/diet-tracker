@@ -608,7 +608,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
   const filtered = frequentFoods.filter(f => f.name.toLowerCase().includes(search.toLowerCase()));
   const s = Math.max(0.01, Number(servings) || 1);
   const previewCal = selected ? Math.round((selected.calories || 0) * s) : 0;
-  const previewProt = selected ? Math.round((selected.protein || 0) * s) : 0;
+  const previewProt = selected ? Math.round((parseFloat(selected.protein) || 0) * s * 10) / 10 : 0;
 
   async function logFrequent() {
     if (!selected) return;
@@ -617,9 +617,10 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
     await supabase.from("food_log").insert({
       date, time: mealTime,
       item: `${selected.name}${suffix}${selected.serving ? ` (${selected.serving})` : ""}`,
-      calories: previewCal, protein: previewProt,
-      carbs: Math.round((selected.carbs || 0) * s),
-      fat: Math.round((selected.fat || 0) * s),
+      calories: previewCal,
+      protein: Math.round((parseFloat(selected.protein) || 0) * s * 10) / 10,
+      carbs:   Math.round((parseFloat(selected.carbs)   || 0) * s * 10) / 10,
+      fat:     Math.round((parseFloat(selected.fat)     || 0) * s * 10) / 10,
     });
     onSaved();
   }
@@ -751,7 +752,7 @@ function AddFormContent({ date, frequentFoods, onSaved }) {
           <label style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.63rem", color: "#9a8f7e" }}>×</label>
           <input type="number" value={servings} onChange={e => setServings(e.target.value)}
             min="0.25" max="20" step="0.25" style={{ width: 60, fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", border: "1px solid #d6cfc4", borderRadius: 2, padding: "0.25rem 0.4rem", background: "#fff", textAlign: "right" }} />
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#b07d3a", whiteSpace: "nowrap" }}>{previewCal} cal · {previewProt}g</span>
+          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.7rem", color: "#b07d3a", whiteSpace: "nowrap" }}>{previewCal} cal · {fmtMacro(previewProt)}g</span>
         </div>
       )}
       <div className="form-actions">
