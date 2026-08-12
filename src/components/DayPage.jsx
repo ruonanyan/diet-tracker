@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../supabase.js";
 import { GLOBAL_CSS } from "../styles.js";
-import { TDEE, PROTEIN_TARGET, fmtMacro, fmtDate, displayFull, shiftDate } from "../constants.js";
+import { TDEE, fmtMacro, fmtDate, displayFull, shiftDate } from "../constants.js";
 import AddFormContent from "./AddFormContent.jsx";
 import WorkoutFormContent from "./WorkoutFormContent.jsx";
 
@@ -66,7 +66,7 @@ export default function DayPage({ date: initialDate, workoutsMap, frequentFoods,
     { label: "Eaten",    val: totalCals.toLocaleString(),                         color: "#b07d3a" },
     { label: "Burn",     val: burn.toLocaleString(),                              color: "#b07d3a" },
     { label: "Deficit",  val: (deficit >= 0 ? "−" : "+") + Math.abs(deficit),    color: deficit >= 0 ? "#3a7d44" : "#b84040" },
-    { label: "Protein",  val: fmtMacro(totalProtein) + "g",                       color: "#2c2418", sub: `${PROTEIN_TARGET}–${PROTEIN_TARGET + 10}g` },
+    { label: "Protein",  val: fmtMacro(totalProtein) + "g",                       color: "#2c2418" },
   ];
 
   return (
@@ -103,7 +103,16 @@ export default function DayPage({ date: initialDate, workoutsMap, frequentFoods,
           <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.75rem", color: "#b5a898", padding: "0.75rem 0" }}>Loading…</div>
         ) : (
           <>
-            {entries.length > 0 && <div className="section-label">Food Entries</div>}
+            {entries.length > 0 && (
+              <>
+                <div style={{ display: "flex", alignItems: "baseline", gap: "0.5rem", padding: "0 0 0.3rem", borderBottom: "1px solid #e8e2d8", marginBottom: "0.1rem" }}>
+                  <div style={{ flex: 1 }} />
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#b5a898", whiteSpace: "nowrap" }}>Protein</span>
+                  <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.52rem", letterSpacing: "0.08em", textTransform: "uppercase", color: "#b5a898", whiteSpace: "nowrap" }}>Cal</span>
+                  <span style={{ width: "1rem" }} />
+                </div>
+              </>
+            )}
             {entries.map(e => (
               <div key={e.id} className="sheet-entry">
                 <div className="sheet-name">{e.item}</div>

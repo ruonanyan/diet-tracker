@@ -12,6 +12,7 @@ export default function ProfilePage({ profile: fallbackProfile, onBack, onSaved 
       .then(({ data }) => {
         const p = data || fallbackProfile;
         setForm({
+          name: p.name || "",
           age: String(p.age),
           gender: p.gender,
           weight_lbs: String(p.weight_lbs),
@@ -39,6 +40,7 @@ export default function ProfilePage({ profile: fallbackProfile, onBack, onSaved 
     setSaving(true);
     const height_in = Number(form.height_ft) * 12 + Number(form.height_in_rem);
     const updated = {
+      name: form.name.trim(),
       age: parseInt(form.age) || fallbackProfile.age,
       gender: form.gender,
       weight_lbs: parseFloat(form.weight_lbs) || fallbackProfile.weight_lbs,
@@ -78,6 +80,7 @@ export default function ProfilePage({ profile: fallbackProfile, onBack, onSaved 
         <p className="subtitle">Body stats · used for calorie calculations</p>
 
         <div style={{ display: "grid", gap: "0.85rem", marginTop: "1.5rem", maxWidth: 380 }}>
+          {field("Name", "name", "text")}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.65rem" }}>
             {field("Age", "age")}
             <div>

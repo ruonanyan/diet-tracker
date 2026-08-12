@@ -11,7 +11,7 @@ export default function FrequentPage({ frequentFoods, onBack }) {
       <style>{GLOBAL_CSS}</style>
       <div className="wrap">
         <button className="back-link" onClick={onBack}>← Back</button>
-        <h1>Frequently eat</h1>
+        <h1>My foods</h1>
         <p className="subtitle">Common foods, serving sizes & macros</p>
         <input value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Search foods..."

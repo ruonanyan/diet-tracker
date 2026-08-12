@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "./supabase.js";
 import { GLOBAL_CSS } from "./styles.js";
-import { TDEE, DEFAULT_PROFILE, fmtDate, fmtHeight } from "./constants.js";
+import { TDEE, DEFAULT_PROFILE, fmtDate } from "./constants.js";
 import HomeAIBox from "./components/HomeAIBox.jsx";
 import SummaryTable from "./components/SummaryTable.jsx";
 import DayPage from "./components/DayPage.jsx";
@@ -14,6 +14,8 @@ import SmoothiePage from "./components/SmoothiePage.jsx";
 export default function App() {
   const today = fmtDate(new Date());
   const [page, setPage] = useState(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
   const [dayOpen, setDayOpen] = useState(false);
   const [selectedDate, setSelectedDate] = useState(today);
   const [summaries, setSummaries] = useState([]);
@@ -51,13 +53,28 @@ export default function App() {
 
   function openDay(date) { setSelectedDate(date); setDayOpen(true); }
 
+  useEffect(() => {
+    function handleClick(e) {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    }
+    document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, []);
+
   const tdee = profile.tdee;
   const todaySummary = summaries.find(([d]) => d === today);
   const todayCals = todaySummary ? todaySummary[1].calories : 0;
   const todayProtein = todaySummary ? todaySummary[1].protein : 0;
   const todayWorkout = workoutsMap[today];
   const todayBurn = tdee + (todayWorkout ? todayWorkout.burn_value : 0);
-  const subtitle = `Ruonan · ${profile.age}${profile.gender === "female" ? "F" : "M"} · ${fmtHeight(profile.height_in)} · ${profile.weight_lbs} lbs`;
+  const displayName = profile.name || "there";
+
+  const navItems = [
+    { label: "Calculation rule", key: "calc" },
+    { label: "My foods",         key: "frequent" },
+    { label: "Smoothie calculator", key: "smoothie" },
+    { label: "My profile",       key: "profile" },
+  ];
 
   if (page === "calc")     return <CalcPage onBack={() => setPage(null)} tdee={tdee} />;
   if (page === "frequent") return <FrequentPage frequentFoods={frequentFoods} onBack={() => setPage(null)} />;
@@ -70,13 +87,28 @@ export default function App() {
     <div style={{ minHeight: "100vh", background: "#f7f4ef", fontFamily: "Georgia, serif", color: "#2c2418" }}>
       <style>{GLOBAL_CSS}</style>
       <div className="wrap">
-        <h1>Calorie Tracker</h1>
-        <p className="subtitle">{subtitle}</p>
-        <div className="page-links">
-          <button className="rules-link" onClick={() => setPage("calc")}>Calculation rule</button>
-          <button className="rules-link" onClick={() => setPage("frequent")}>Frequently eat</button>
-          <button className="rules-link" onClick={() => setPage("smoothie")}>Smoothie calculator</button>
-          <button className="rules-link" onClick={() => setPage("profile")}>My profile</button>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "1.5rem" }}>
+          <h1>Hi, {displayName}!</h1>
+          <div ref={menuRef} style={{ position: "relative" }}>
+            <button onClick={() => setMenuOpen(o => !o)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: "0.25rem", display: "flex", flexDirection: "column", gap: "5px", marginTop: "0.4rem" }}>
+              <span style={{ display: "block", width: 22, height: 2, background: "#6b5f52", borderRadius: 1 }} />
+              <span style={{ display: "block", width: 22, height: 2, background: "#6b5f52", borderRadius: 1 }} />
+              <span style={{ display: "block", width: 22, height: 2, background: "#6b5f52", borderRadius: 1 }} />
+            </button>
+            {menuOpen && (
+              <div style={{ position: "absolute", right: 0, top: "calc(100% + 6px)", background: "#fff", border: "1px solid #e8e2d8", borderRadius: 8, boxShadow: "0 4px 16px rgba(0,0,0,0.10)", zIndex: 200, minWidth: 180, overflow: "hidden" }}>
+                {navItems.map(({ label, key }) => (
+                  <button key={key} onClick={() => { setPage(key); setMenuOpen(false); }}
+                    style={{ display: "block", width: "100%", textAlign: "left", fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", letterSpacing: "0.04em", color: "#3d3228", background: "none", border: "none", borderBottom: "1px solid #f0ebe3", padding: "0.75rem 1rem", cursor: "pointer" }}
+                    onMouseEnter={e => e.currentTarget.style.background = "#f7f4ef"}
+                    onMouseLeave={e => e.currentTarget.style.background = "none"}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <HomeAIBox onLogged={fetchHome} profile={profile} tdee={tdee} frequentFoods={frequentFoods} />

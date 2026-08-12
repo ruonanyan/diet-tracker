@@ -23,9 +23,11 @@ export const GLOBAL_CSS = `
   .tbl tbody td:first-child { text-align: left; }
   .date-str { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #3d3228; }
   .cell-main { font-size: 1rem; color: #2c2418; font-weight: 500; line-height: 1.2; display: inline; }
+  .cell-small { font-size: 0.78rem; color: #2c2418; font-weight: 400; line-height: 1.2; display: inline; }
   .cell-sub { font-size: 0.78rem; color: #b5a898; line-height: 1.2; display: block; margin-top: 0.1rem; }
-  .deficit-pos { color: #3a7d44; font-weight: 500; font-size: 1rem; }
-  .deficit-neg { color: #b84040; font-weight: 500; font-size: 1rem; }
+  .deficit-pos { color: #3a7d44; font-weight: 600; font-size: 1.05rem; }
+  .deficit-neg { color: #b84040; font-weight: 600; font-size: 1.05rem; }
+  .protein-big { font-family: 'DM Mono', monospace; font-size: 1.05rem; font-weight: 600; color: #2c2418; }
 
   /* Back link */
   .back-link { font-family: 'DM Mono', monospace; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #9a8f7e; background: none; border: none; cursor: pointer; padding: 0; margin-bottom: 1.25rem; display: inline-block; }

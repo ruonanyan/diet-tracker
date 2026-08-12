@@ -1,4 +1,4 @@
-import { TDEE, DEFICIT_TARGET, fmtMacro, displayShort } from "../constants.js";
+import { TDEE, fmtMacro, displayShort } from "../constants.js";
 
 export default function SummaryTable({ rows, workoutsMap, tdee, onOpenDay }) {
   return (
@@ -21,19 +21,18 @@ export default function SummaryTable({ rows, workoutsMap, tdee, onOpenDay }) {
             <tr key={date} onClick={() => onOpenDay(date)}>
               <td><span className="date-str">{displayShort(date)}</span></td>
               <td>
-                <span className="cell-main">{calories.toLocaleString()}</span>
-                <span className="cell-sub">{(burn - DEFICIT_TARGET).toLocaleString()}</span>
+                <span className="cell-small">{calories.toLocaleString()}</span>
               </td>
               <td>
-                {wk && <span style={{ fontSize: "15px", marginRight: "4px" }}>💪</span>}
-                <span className="cell-main">{burn.toLocaleString()}</span>
+                {wk && <span style={{ fontSize: "13px", marginRight: "3px" }}>💪</span>}
+                <span className="cell-small">{burn.toLocaleString()}</span>
               </td>
               <td>
                 <span className={deficit >= 0 ? "deficit-pos" : "deficit-neg"}>
                   {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
                 </span>
               </td>
-              <td style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.88rem" }}>{fmtMacro(protein)}g</td>
+              <td><span className="protein-big">{fmtMacro(protein)}g</span></td>
             </tr>
           );
         })}

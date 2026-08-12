@@ -16,7 +16,7 @@ export const SERVING_GRAMS = {
 };
 
 export const DEFAULT_PROFILE = {
-  age: 35, gender: "female", weight_lbs: 156.0, height_in: 64, tdee: 1717, rhr: 64,
+  name: "", age: 35, gender: "female", weight_lbs: 156.0, height_in: 64, tdee: 1717, rhr: 64,
 };
 
 export function fmtMacro(v) {
@@ -47,7 +47,8 @@ export function shiftDate(str, n) {
 }
 
 export function displayShort(str) {
-  return parseLocal(str).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const d = parseLocal(str);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 export function displayFull(str) {

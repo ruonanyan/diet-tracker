@@ -270,8 +270,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
 
   return (
     <div style={{ marginBottom: "1.5rem" }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "0.6rem" }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.6rem", letterSpacing: "0.1em", textTransform: "uppercase", color: "#b5a898" }}>✦ Quick Log</span>
+      <div style={{ marginBottom: "0.6rem" }}>
         <input type="date" value={date} onChange={e => setDate(e.target.value)}
           style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
       </div>
@@ -312,7 +311,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
         />
         {!hasContent && (
           <div style={{ position: "absolute", top: "0.55rem", left: "0.7rem", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", color: "#b5a898", pointerEvents: "none", userSelect: "none", lineHeight: "1.6" }}>
-            Describe food or a workout… type @ to pick from frequent foods
+            Describe food or a workout… type @ to pick from my foods
           </div>
         )}
         {atMatch && atFiltered.length > 0 && (
@@ -365,7 +364,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
 
       <button onClick={parseWithAI} disabled={!hasContent || parsing}
         style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", letterSpacing: "0.06em", background: hasContent && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: hasContent && !parsing ? "pointer" : "not-allowed" }}>
-        {parsing ? "Thinking…" : "✦ Submit"}
+        {parsing ? "Thinking…" : "Calculate with AI"}
       </button>
 
       {aiError && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginTop: "0.5rem" }}>{aiError}</div>}
@@ -431,14 +430,17 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
             </div>
           )}
 
-          <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
-            <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-submit</button>
+          <div style={{ display: "grid", gridTemplateColumns: isWorkout ? "1fr" : "1fr 1fr", gap: "0.5rem" }}>
             {!isWorkout && (
-              <button className="btn-cancel" onClick={saveToFrequent} disabled={saving} style={{ opacity: saving ? 0.4 : 1, borderColor: "#b07d3a", color: "#b07d3a" }}>
-                Save to frequent
+              <button onClick={saveToFrequent} disabled={saving}
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: saving ? "#d6cfc4" : "#3a7d44", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.5 : 1 }}>
+                Save to My Foods
               </button>
             )}
-            <button className="btn-primary" onClick={logToday} disabled={saving} style={{ opacity: saving ? 0.4 : 1 }}>{saving ? "Saving…" : "Log today"}</button>
+            <button onClick={logToday} disabled={saving}
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: saving ? "#d6cfc4" : "#2c2418", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.5 : 1 }}>
+              {saving ? "Saving…" : "Log today"}
+            </button>
           </div>
         </div>
       )}
