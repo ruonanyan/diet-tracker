@@ -73,11 +73,11 @@ export const GLOBAL_CSS = `
   /* Food entries */
   .section-label { font-family: 'DM Mono', monospace; font-size: 0.6rem; letter-spacing: 0.12em; text-transform: uppercase; color: #b5a898; margin-bottom: 0.6rem; }
   .meal-label { font-family: 'DM Mono', monospace; font-size: 0.58rem; letter-spacing: 0.08em; text-transform: uppercase; color: #d6cfc4; margin: 0.65rem 0 0.2rem; }
-  .sheet-entry { display: flex; align-items: baseline; gap: 0.5rem; padding: 0.6rem 0; border-bottom: 1px solid #f0ebe3; }
-  .sheet-name { flex: 1; font-size: 0.86rem; color: #3d3228; line-height: 1.4; padding-right: 0.5rem; }
-  .sheet-cal { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #b07d3a; white-space: nowrap; }
-  .sheet-protein { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #6b5f52; white-space: nowrap; }
-  .sheet-del { background: none; border: none; color: #d6cfc4; cursor: pointer; font-size: 1rem; padding: 0 0.1rem; line-height: 1; }
+  .sheet-entry { display: flex; align-items: baseline; gap: 0; padding: 0.6rem 0; border-bottom: 1px solid #f0ebe3; }
+  .sheet-name { flex: 1; font-size: 0.86rem; color: #3d3228; line-height: 1.4; padding-right: 0.75rem; }
+  .sheet-cal { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #b07d3a; white-space: nowrap; width: 2.75rem; text-align: right; flex-shrink: 0; }
+  .sheet-protein { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: #6b5f52; white-space: nowrap; width: 3.25rem; text-align: right; flex-shrink: 0; }
+  .sheet-del { background: none; border: none; color: #d6cfc4; cursor: pointer; font-size: 1rem; padding: 0 0 0 0.4rem; line-height: 1; width: 1.4rem; flex-shrink: 0; }
   .sheet-del:hover { color: #c0392b; }
   .sheet-empty { font-family: 'DM Mono', monospace; font-size: 0.75rem; color: #d6cfc4; padding: 1rem 0; }
   .sheet-add-btn { font-family: 'DM Mono', monospace; font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; background: transparent; border: 1px solid #d6cfc4; color: #9a8f7e; padding: 0.5rem 1rem; cursor: pointer; border-radius: 2px; margin-top: 1rem; }

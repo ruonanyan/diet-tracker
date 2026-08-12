@@ -433,12 +433,12 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
           <div style={{ display: "grid", gridTemplateColumns: isWorkout ? "1fr" : "1fr 1fr", gap: "0.5rem" }}>
             {!isWorkout && (
               <button onClick={saveToFrequent} disabled={saving}
-                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: saving ? "#d6cfc4" : "#3a7d44", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.5 : 1 }}>
+                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: "transparent", color: saving ? "#d6cfc4" : "#b07d3a", border: `1.5px solid ${saving ? "#d6cfc4" : "#b07d3a"}`, padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer" }}>
                 Save to My Foods
               </button>
             )}
             <button onClick={logToday} disabled={saving}
-              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: saving ? "#d6cfc4" : "#2c2418", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer", opacity: saving ? 0.5 : 1 }}>
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: saving ? "#d6cfc4" : "#b07d3a", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer" }}>
               {saving ? "Saving…" : "Log today"}
             </button>
           </div>

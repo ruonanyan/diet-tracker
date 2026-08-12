@@ -33,8 +33,8 @@ export default function App() {
     const byDate = { [today]: { calories: 0, protein: 0 } };
     for (const e of food || []) {
       if (!byDate[e.date]) byDate[e.date] = { calories: 0, protein: 0 };
-      byDate[e.date].calories += e.calories || 0;
-      byDate[e.date].protein += e.protein || 0;
+      byDate[e.date].calories += parseFloat(e.calories) || 0;
+      byDate[e.date].protein += parseFloat(e.protein) || 0;
     }
     setSummaries(Object.entries(byDate).sort((a, b) => b[0].localeCompare(a[0])));
     const wm = {};
