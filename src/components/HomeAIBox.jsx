@@ -16,7 +16,8 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   const [hasContent, setHasContent] = useState(false);
   const editorRef = useRef(null);
   const fileInputRef = useRef(null);
-  const [photo, setPhoto] = useState(null); // { base64, mediaType, previewUrl }
+  const [photos, setPhotos] = useState([]); // [{ base64, mediaType, previewUrl }], max 5
+  const [previewPhoto, setPreviewPhoto] = useState(null); // lightbox
 
   const atFiltered = atMatch
     ? frequentFoods.filter(f =>
@@ -71,27 +72,37 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   function checkHasContent() {
     const ed = editorRef.current;
     if (!ed) return;
-    setHasContent(ed.textContent.trim().length > 0 || !!ed.querySelector(".food-chip") || !!photo);
+    setHasContent(ed.textContent.trim().length > 0 || !!ed.querySelector(".food-chip") || photos.length > 0);
   }
 
   function handlePhotoSelect(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const dataUrl = reader.result;
-      const [header, base64] = dataUrl.split(",");
-      const mediaType = header.match(/data:([^;]+)/)[1];
-      setPhoto({ base64, mediaType, previewUrl: dataUrl });
-      setHasContent(true);
-    };
-    reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    const slots = 5 - photos.length;
+    const toRead = files.slice(0, slots);
+    toRead.forEach(file => {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = reader.result;
+        const [header, base64] = dataUrl.split(",");
+        const mediaType = header.match(/data:([^;]+)/)[1];
+        setPhotos(prev => prev.length < 5 ? [...prev, { base64, mediaType, previewUrl: dataUrl }] : prev);
+        setHasContent(true);
+      };
+      reader.readAsDataURL(file);
+    });
     e.target.value = "";
   }
 
-  function removePhoto() {
-    setPhoto(null);
-    checkHasContent();
+  function removePhoto(idx) {
+    setPhotos(prev => {
+      const next = prev.filter((_, i) => i !== idx);
+      const ed = editorRef.current;
+      if (next.length === 0 && ed && !ed.textContent.trim() && !ed.querySelector(".food-chip")) {
+        setHasContent(false);
+      }
+      return next;
+    });
   }
 
   function handleInput() {
@@ -122,6 +133,8 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
     chip.dataset.protein = String(f.protein);
     chip.dataset.carbs = String(f.carbs ?? 0);
     chip.dataset.fat = String(f.fat ?? 0);
+    chip.dataset.serving = f.serving || "";
+    chip.dataset.servingGrams = String(f.serving_grams ?? "");
     Object.assign(chip.style, {
       display: "inline-flex", alignItems: "center", background: "#f0ebe3",
       border: "1px solid #d8c9b8", borderRadius: "12px", padding: "1px 8px",
@@ -182,8 +195,9 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
         text += n.textContent;
       } else if (n.nodeType === Node.ELEMENT_NODE) {
         if (n.classList.contains("food-chip")) {
-          const { name, calories, protein, carbs, fat } = n.dataset;
-          text += `${name} (${calories} cal, ${protein}g protein, ${carbs}g carbs, ${fat}g fat)`;
+          const { name, calories, protein, carbs, fat, servingGrams, serving } = n.dataset;
+          const servingInfo = servingGrams ? ` per ${servingGrams}g` : serving ? ` per ${serving}` : "";
+          text += `${name} (${calories} cal, ${protein}g protein, ${carbs}g carbs, ${fat}g fat${servingInfo})`;
         } else if (n.tagName === "BR") {
           text += "\n";
         } else {
@@ -198,12 +212,12 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
 
   async function parseWithAI() {
     const description = getDescription();
-    if (!description && !photo) return;
+    if (!description && photos.length === 0) return;
     setParsing(true); setAiError(""); setAiResult(null); setSavedMsg(""); setAtMatch(null);
     try {
       const body = { description, userStats: profile };
       if (frequentFoods.length > 0) body.frequentFoods = frequentFoods;
-      if (photo) { body.imageBase64 = photo.base64; body.imageMediaType = photo.mediaType; }
+      if (photos.length > 0) body.images = photos.map(p => ({ base64: p.base64, mediaType: p.mediaType }));
       const res = await fetch("/api/parse-entry", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -219,7 +233,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   function reset() {
     if (editorRef.current) editorRef.current.innerHTML = "";
     setAiResult(null); setSavedMsg(""); setHasContent(false);
-    setAtMatch(null); setChipReplacing(null); setPhoto(null);
+    setAtMatch(null); setChipReplacing(null); setPhotos([]);
   }
 
   async function logToday() {
@@ -316,24 +330,38 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
         )}
       </div>
 
-      {/* hidden file input */}
-      <input ref={fileInputRef} type="file" accept="image/*"
+      {/* hidden file input — multiple allowed */}
+      <input ref={fileInputRef} type="file" accept="image/*" multiple
         style={{ display: "none" }} onChange={handlePhotoSelect} />
 
-      {/* photo preview or camera button */}
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem" }}>
-        {photo ? (
-          <div style={{ position: "relative", display: "inline-flex" }}>
-            <img src={photo.previewUrl} alt="food" style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 6, border: "1px solid #d8c9b8" }} />
-            <button onClick={removePhoto} style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#b84040", border: "none", color: "#fff", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
-          </div>
-        ) : (
-          <button onClick={() => fileInputRef.current?.click()}
-            style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#9a8f7e", background: "none", border: "1px solid #d8c9b8", borderRadius: 4, padding: "0.3rem 0.65rem", cursor: "pointer", letterSpacing: "0.04em" }}>
-            📷 Add photo
-          </button>
-        )}
-      </div>
+      {/* lightbox */}
+      {previewPhoto && (
+        <div onClick={() => setPreviewPhoto(null)}
+          style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.82)", zIndex: 999, display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out" }}>
+          <img src={previewPhoto} alt="preview"
+            style={{ maxWidth: "92vw", maxHeight: "88vh", borderRadius: 8, objectFit: "contain" }} />
+        </div>
+      )}
+
+      {/* thumbnails + add button */}
+      {(photos.length > 0 || true) && (
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.6rem", flexWrap: "wrap" }}>
+          {photos.map((p, idx) => (
+            <div key={idx} style={{ position: "relative", display: "inline-flex", flexShrink: 0 }}>
+              <img src={p.previewUrl} alt="food" onClick={() => setPreviewPhoto(p.previewUrl)}
+                style={{ width: 56, height: 56, objectFit: "cover", borderRadius: 6, border: "1px solid #d8c9b8", cursor: "zoom-in" }} />
+              <button onClick={() => removePhoto(idx)}
+                style={{ position: "absolute", top: -6, right: -6, width: 18, height: 18, borderRadius: "50%", background: "#b84040", border: "none", color: "#fff", fontSize: "0.65rem", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}>×</button>
+            </div>
+          ))}
+          {photos.length < 5 && (
+            <button onClick={() => fileInputRef.current?.click()}
+              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#9a8f7e", background: "none", border: "1px solid #d8c9b8", borderRadius: 4, padding: "0.3rem 0.65rem", cursor: "pointer", letterSpacing: "0.04em", flexShrink: 0 }}>
+              📷 {photos.length === 0 ? "Add photo" : "+"}
+            </button>
+          )}
+        </div>
+      )}
 
       <button onClick={parseWithAI} disabled={!hasContent || parsing}
         style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", letterSpacing: "0.06em", background: hasContent && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: hasContent && !parsing ? "pointer" : "not-allowed" }}>

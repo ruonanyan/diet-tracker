@@ -3,8 +3,8 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { description, userStats, frequentFoods, imageBase64, imageMediaType } = req.body || {};
-  if (!description && !imageBase64) {
+  const { description, userStats, frequentFoods, images } = req.body || {};
+  if (!description && (!images || images.length === 0)) {
     return res.status(400).json({ error: 'Description or image required' });
   }
 
@@ -17,7 +17,10 @@ export default async function handler(req, res) {
   const weight_kg = (weight_lbs * 0.453592).toFixed(1);
 
   const frequentFoodsBlock = frequentFoods?.length
-    ? `\nFrequent foods list — if ANY food mentioned closely matches an item here (including "MY [food]" shorthand, casual names, or abbreviations), use EXACT macros from the list rather than estimating. Scale proportionally for fractions or multiples (e.g. "half" = ÷2, "2x" = ×2):\n${frequentFoods.map(f => `- ${f.name}: ${f.calories} cal, ${f.protein}g protein, ${f.carbs ?? 0}g carbs, ${f.fat ?? 0}g fat`).join('\n')}\n`
+    ? `\nFrequent foods list — if ANY food mentioned closely matches an item here (including "MY [food]" shorthand, casual names, or abbreviations), use EXACT macros from the list rather than estimating.\nScaling rules:\n- If a gram amount is specified and the entry has a serving size in grams, scale: (user_grams ÷ serving_grams) × macros_per_serving.\n- For fractions/multiples with no gram amount: "half" = ÷2, "2x" = ×2, etc.\n${frequentFoods.map(f => {
+        const servingInfo = f.serving_grams ? ` (per ${f.serving_grams}g)` : f.serving ? ` (per ${f.serving})` : '';
+        return `- ${f.name}${servingInfo}: ${f.calories} cal, ${f.protein}g protein, ${f.carbs ?? 0}g carbs, ${f.fat ?? 0}g fat`;
+      }).join('\n')}\n`
     : '';
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -64,9 +67,9 @@ Workout calculation rules:
 All numbers are integers.
 ${description ? `\nText description: "${description}"` : ''}`;
 
-          if (imageBase64) {
+          if (images?.length > 0) {
             return [
-              { type: 'image', source: { type: 'base64', media_type: imageMediaType || 'image/jpeg', data: imageBase64 } },
+              ...images.map(img => ({ type: 'image', source: { type: 'base64', media_type: img.mediaType || 'image/jpeg', data: img.base64 } })),
               { type: 'text', text: prompt },
             ];
           }
