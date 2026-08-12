@@ -73,7 +73,7 @@ Worked example — "1 hour upper body strength + 1 min peak + 13 min vigorous + 
 
 Use this exact method. Do not use internet-sourced calorie estimates.
 
-All numbers are integers.
+Calories, carbs, and fat are integers. Protein may have one decimal place (e.g. 0.3) — do not round protein to 0 if the actual value is between 0.1 and 0.9.
 ${description ? `\nText description: "${description}"` : ''}`;
 
           if (images?.length > 0) {
