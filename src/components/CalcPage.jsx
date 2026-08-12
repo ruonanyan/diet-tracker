@@ -14,9 +14,9 @@ export default function CalcPage({ onBack, tdee = TDEE }) {
         <p>Your rest-day baseline is <span className="num">{tdee.toLocaleString()} kcal/day</span> — this is your estimated maintenance energy with no workout, made up of your RMR (Katch-McArdle) plus non-exercise activity. On days with no logged workout, this is your full "Burn" for the day.</p>
 
         <h2>Workout days</h2>
-        <p>When you log a workout, its estimated burn (kcal) is added on top of the baseline — scaled up by <span className="num">×1.10</span> to account for EPOC (the "afterburn" effect where your metabolism stays elevated for hours after exercise).</p>
-        <p><span className="num">Burn = {tdee.toLocaleString()} + (workout burn × 1.10)</span></p>
-        <p>Workout burn itself is estimated using your heart-rate zone minutes via the Karvonen HR formula.</p>
+        <p>When you log a workout, its estimated burn (kcal) is added on top of the baseline. The AI already applies a <span className="num">×1.10</span> EPOC multiplier (the "afterburn" effect where your metabolism stays elevated for hours after exercise) before storing the number.</p>
+        <p><span className="num">Burn = {tdee.toLocaleString()} + workout burn (incl. EPOC)</span></p>
+        <p>Workout burn is estimated using heart-rate zone minutes via the Karvonen HR formula for cardio, and MET-based estimates for strength training.</p>
 
         <h2>Eaten & target</h2>
         <p>"Eaten" is the sum of calories from everything logged for the day. The grey number underneath is your target intake, calculated as:</p>

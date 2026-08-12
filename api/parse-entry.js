@@ -59,10 +59,12 @@ If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}
 
 Workout calculation rules:
-- burn_value = calories burned FROM THE WORKOUT ONLY, not including the ${tdee} kcal TDEE baseline.
-- The app will apply ×1.10 EPOC multiplier on top of your estimate, so do NOT include EPOC in your number.
-- If heart-rate zone minutes are given, use the Karvonen formula: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min.
-- If no zone data is given, estimate based on activity type, duration, and intensity.
+- burn_value = workout calories × 1.10 (EPOC afterburn). Always include the ×1.10 multiplier in your final number.
+- Do NOT include the ${tdee} kcal TDEE baseline — only the workout's contribution.
+- If heart-rate zone minutes are given, use Karvonen to get exercise calories first: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min. Then multiply total by 1.10.
+- For strength/resistance training without HR zone data, estimate for this user (${weight_lbs} lbs, ${gender}): light lifting ~3.5 cal/min, moderate lifting ~4.5 cal/min, heavy compound lifts ~5.5 cal/min. Then multiply by 1.10.
+- If a session includes both cardio (with HR zones) AND strength training, calculate each separately, sum the exercise calories, then multiply the total by 1.10.
+- If no zone or activity detail is given, estimate based on type, duration, and intensity, then apply ×1.10.
 
 All numbers are integers.
 ${description ? `\nText description: "${description}"` : ''}`;
