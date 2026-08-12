@@ -59,12 +59,19 @@ If it's a WORKOUT, return:
 {"type": "workout", "notes": "concise workout description", "burn_value": number}
 
 Workout calculation rules:
-- burn_value = workout calories × 1.10 (EPOC afterburn). Always include the ×1.10 multiplier in your final number.
-- Do NOT include the ${tdee} kcal TDEE baseline — only the workout's contribution.
-- If heart-rate zone minutes are given, use Karvonen to get exercise calories first: Peak (~168 bpm) = 8.99 cal/min, Vigorous (~149 bpm) = 6.95 cal/min, Moderate (~115 bpm) = 3.32 cal/min. Then multiply total by 1.10.
-- For strength/resistance training without HR zone data, estimate for this user (${weight_lbs} lbs, ${gender}): light lifting ~3.5 cal/min, moderate lifting ~4.5 cal/min, heavy compound lifts ~5.5 cal/min. Then multiply by 1.10.
-- If a session includes both cardio (with HR zones) AND strength training, calculate each separately, sum the exercise calories, then multiply the total by 1.10.
-- If no zone or activity detail is given, estimate based on type, duration, and intensity, then apply ×1.10.
+- burn_value = exercise_calories × 1.10 (EPOC afterburn). Always apply ×1.10 to your final number.
+- Do NOT include the ${tdee} kcal TDEE baseline. Do NOT use gross MET-based burn — use NET additional calories above baseline only.
+- Karvonen cal/min for this user (already net, already calibrated): Peak = 8.99, Vigorous = 6.95, Moderate = 3.32.
+- Strength training NET cal/min for this user (${weight_lbs} lbs, ${gender}): upper body = 3.5 cal/min, lower body = 4.5 cal/min, full body = 4.0 cal/min.
+- For mixed sessions, sum each component's exercise_calories first, then apply ×1.10 once at the end.
+
+Worked example — "1 hour upper body strength + 1 min peak + 13 min vigorous + 7 min moderate":
+  strength: 60 × 3.5 = 210 cal
+  cardio:   (1 × 8.99) + (13 × 6.95) + (7 × 3.32) = 9 + 90 + 23 = 122 cal
+  total exercise: 210 + 122 = 332 cal
+  burn_value: round(332 × 1.10) = 365
+
+Use this exact method. Do not use internet-sourced calorie estimates.
 
 All numbers are integers.
 ${description ? `\nText description: "${description}"` : ''}`;
