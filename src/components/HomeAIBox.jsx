@@ -425,6 +425,12 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
               </div>
             </div>
           )}
+          {aiResult.reasoning && (
+            <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#9a8f7e", lineHeight: 1.6, marginBottom: "0.75rem", borderTop: "1px solid rgba(0,0,0,0.06)", paddingTop: "0.6rem" }}>
+              {aiResult.reasoning}
+            </div>
+          )}
+
           <div style={{ display: "flex", gap: "0.5rem", justifyContent: "flex-end", flexWrap: "wrap" }}>
             <button className="btn-cancel" onClick={() => setAiResult(null)}>Re-submit</button>
             {!isWorkout && (

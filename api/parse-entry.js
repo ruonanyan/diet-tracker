@@ -46,7 +46,7 @@ export default async function handler(req, res) {
 User stats: ${gender}, age ${age}, ${weight_lbs} lbs (${weight_kg} kg), ${height_str}. TDEE baseline: ${tdee} kcal/day.${frequentFoodsBlock}
 
 If it's FOOD, return:
-{"type": "food", "item": "concise overall description", "items": [{"name": "item name", "calories": number, "protein": number, "carbs": number, "fat": number}], "calories": number, "protein": number, "carbs": number, "fat": number}
+{"type": "food", "item": "concise overall description", "items": [{"name": "item name", "calories": number, "protein": number, "carbs": number, "fat": number}], "calories": number, "protein": number, "carbs": number, "fat": number, "reasoning": "2-3 sentences: what source was used for each item (frequent foods list + scaling, general knowledge, image estimate), any assumptions made about portion or preparation"}
 
 Rules for the "items" array:
 - Break down EVERY distinct ingredient or component into its own entry.
@@ -56,7 +56,7 @@ Rules for the "items" array:
 - If an image is provided, identify all visible food items and estimate portions from visual cues.
 
 If it's a WORKOUT, return:
-{"type": "workout", "notes": "concise workout description", "burn_value": number}
+{"type": "workout", "notes": "concise workout description", "burn_value": number, "reasoning": "show the exact calculation: list each component's cal/min × minutes, sum, then × 1.10 EPOC, e.g. strength: 60×3.5=210, cardio: 1×8.99+13×6.95+7×3.32=122, total: 332×1.10=365"}
 
 Workout calculation rules:
 - burn_value = exercise_calories × 1.10 (EPOC afterburn). Always apply ×1.10 to your final number.
