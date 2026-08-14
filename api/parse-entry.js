@@ -49,12 +49,14 @@ Workout rules:
 - Do NOT include ${tdee} kcal TDEE. Use NET additional calories only. Do not use MET estimates.
 - Karvonen cal/min (net, calibrated): Peak=8.99, Vigorous=6.95, Moderate=3.32.
 - Strength cal/min (${weight_lbs} lbs, ${gender}): upper=3.5, lower=4.5, full body=4.0.
-- If HR zones are given for the ENTIRE workout (e.g. "total heart rate zone"), use zones-only — do NOT add separate strength cal/min.
 - If HR zones cover only the cardio portion, add strength and cardio separately.
+- If HR zones cover the ENTIRE workout (e.g. "total heart rate zone"), use zones as the base PLUS a strength bonus for the calories HR misses:
+    strength_bonus = strength_minutes × (strength_cal_min − 3.32)
+    total = (zone_calories + strength_bonus) × 1.10
 - Example (zones for cardio only) — "1hr upper body + 1min peak + 13min vigorous + 7min moderate":
   strength: 60×3.5=210, cardio: (1×8.99)+(13×6.95)+(7×3.32)=122, total: 332×1.10=365
 - Example (zones for entire workout) — "50min lower body + 20min run. Total HR zone: 11min peak, 9min vigorous, 40min moderate":
-  zones only: (11×8.99)+(9×6.95)+(40×3.32)=294, total: 294×1.10=324
+  zones: (11×8.99)+(9×6.95)+(40×3.32)=294, strength bonus: 50×(4.5−3.32)=59, total: (294+59)×1.10=389
 
 Calories/carbs/fat are integers. Protein may have one decimal (e.g. 0.3).
 ${description ? `\nText: "${description}"` : ''}`;
