@@ -16,11 +16,27 @@ export default async function handler(req, res) {
   const height_str = `${Math.floor(height_in / 12)}'${height_in % 12}"`;
   const weight_kg = (weight_lbs * 0.453592).toFixed(1);
 
+  // Pre-normalize frequent foods to per-single-unit macros so AI doesn't need to scale
+  function parseServingQty(serving) {
+    if (!serving) return null;
+    const m = serving.match(/^(\d+(?:\.\d+)?)\s*(.+)$/);
+    if (!m) return null;
+    const qty = parseFloat(m[1]);
+    return qty > 1 ? { qty, unit: m[2].trim() } : null;
+  }
+
   const frequentFoodsBlock = frequentFoods?.length
-    ? `\nFrequent foods list — if ANY food mentioned closely matches an item here (including "MY [food]" shorthand, casual names, or abbreviations), use EXACT macros from the list rather than estimating.\nScaling rules — the listed macros are PER SERVING:\n- If user specifies a unit matching the serving (e.g. serving is "3 cups", user says "1 cup"): multiply macros by (user_amount ÷ serving_amount). Example: 1 cup ÷ 3 cups = 0.333 → 120 cal × 0.333 = 40 cal. STOP here — do not do any further gram conversion.\n- If user specifies grams and serving has grams: multiply macros by (user_grams ÷ serving_grams).\n- For relative amounts: "half" = ×0.5, "2x" = ×2, etc.\n${frequentFoods.map(f => {
-        const servingInfo = f.serving_grams
-          ? (f.serving ? ` (${f.serving} = ${f.serving_grams}g)` : ` (per ${f.serving_grams}g)`)
-          : f.serving ? ` (per ${f.serving})` : '';
+    ? `\nFrequent foods list — macros below are already normalized to ONE unit. Use EXACT values; scale only by the user's quantity.\nScaling rules:\n- User says "2 cups" and list shows "per 1 cup": multiply macros ×2.\n- User specifies grams and list shows grams: multiply by (user_grams ÷ listed_grams).\n- "half" = ×0.5, "2x" = ×2, etc.\n${frequentFoods.map(f => {
+        const parsed = parseServingQty(f.serving);
+        if (parsed) {
+          const r = 1 / parsed.qty;
+          const cal = Math.round(f.calories * r);
+          const prot = Math.round(parseFloat(f.protein) * r * 10) / 10;
+          const carbs = Math.round((f.carbs ?? 0) * r);
+          const fat = Math.round((f.fat ?? 0) * r);
+          return `- ${f.name} (per 1 ${parsed.unit}): ${cal} cal, ${prot}g protein, ${carbs}g carbs, ${fat}g fat`;
+        }
+        const servingInfo = f.serving_grams ? ` (per ${f.serving_grams}g)` : f.serving ? ` (per ${f.serving})` : '';
         return `- ${f.name}${servingInfo}: ${f.calories} cal, ${f.protein}g protein, ${f.carbs ?? 0}g carbs, ${f.fat ?? 0}g fat`;
       }).join('\n')}\n`
     : '';
