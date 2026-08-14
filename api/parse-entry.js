@@ -17,7 +17,7 @@ export default async function handler(req, res) {
   const weight_kg = (weight_lbs * 0.453592).toFixed(1);
 
   const frequentFoodsBlock = frequentFoods?.length
-    ? `\nFrequent foods list — if ANY food mentioned closely matches an item here (including "MY [food]" shorthand, casual names, or abbreviations), use EXACT macros from the list rather than estimating.\nScaling rules — always use the serving column as the base unit:\n- Match units directly: if serving is "3 cups" and user says "1 cup", scale by 1/3. If serving is "1 oz" and user says "2 oz", scale by 2.\n- If user specifies grams and serving has a gram amount, scale by gram ratio.\n- For relative amounts with no unit: "half" = ÷2, "2x" = ×2, etc.\n- Never guess gram weights from volume units (cups, oz, tbsp) — use the serving ratio instead.\n${frequentFoods.map(f => {
+    ? `\nFrequent foods list — if ANY food mentioned closely matches an item here (including "MY [food]" shorthand, casual names, or abbreviations), use EXACT macros from the list rather than estimating.\nScaling rules — the listed macros are PER SERVING:\n- If user specifies a unit matching the serving (e.g. serving is "3 cups", user says "1 cup"): multiply macros by (user_amount ÷ serving_amount). Example: 1 cup ÷ 3 cups = 0.333 → 120 cal × 0.333 = 40 cal. STOP here — do not do any further gram conversion.\n- If user specifies grams and serving has grams: multiply macros by (user_grams ÷ serving_grams).\n- For relative amounts: "half" = ×0.5, "2x" = ×2, etc.\n${frequentFoods.map(f => {
         const servingInfo = f.serving_grams
           ? (f.serving ? ` (${f.serving} = ${f.serving_grams}g)` : ` (per ${f.serving_grams}g)`)
           : f.serving ? ` (per ${f.serving})` : '';
