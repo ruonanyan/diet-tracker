@@ -38,7 +38,7 @@ If it's FOOD, return:
 
 Rules for items array:
 - Break down every distinct ingredient into its own entry. Top-level totals must equal sum of items.
-- Match frequent foods list exactly (including "MY [food]" shorthand). Scale by quantity.
+- Use the frequent foods list ONLY when the ingredient name is a direct match or the user wrote "MY [food]". Do NOT use it as a proxy for similar-sounding items — if something isn't in the list, estimate it from general nutrition knowledge instead.
 - If image provided, identify all visible foods and estimate portions visually.
 
 If it's a WORKOUT, return:
