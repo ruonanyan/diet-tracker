@@ -1,3 +1,4 @@
+// User fitness constants
 export const TDEE = 1717;
 export const PROTEIN_TARGET = 120;
 export const DEFICIT_TARGET = 300;
