@@ -1,44 +1,57 @@
-import { TDEE, DEFICIT_TARGET, PROTEIN_TARGET, fmtMacro, displayShort } from "../constants.js";
+import {
+  Table, TableHeader, TableHeaderCell,
+  TableBody, TableRow, TableCell, Text,
+} from "@vibe/core";
+import { DEFICIT_TARGET, PROTEIN_TARGET, fmtMacro, displayShort } from "../constants.js";
+
+const COLUMNS = [
+  { id: "date",    title: "Date",    width: 95 },
+  { id: "eaten",   title: "Eaten",   width: 70 },
+  { id: "burn",    title: "Burn",    width: 75 },
+  { id: "deficit", title: "Deficit", width: 80 },
+  { id: "protein", title: "Protein", width: 75 },
+];
 
 export default function SummaryTable({ rows, workoutsMap, tdee, onOpenDay }) {
   return (
-    <table className="tbl">
-      <thead>
-        <tr>
-          <th style={{ textAlign: "left" }}>Date</th>
-          <th>Eaten</th>
-          <th>Burn</th>
-          <th>Deficit</th>
-          <th>Protein</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table columns={COLUMNS} style={{ width: "100%" }}>
+      <TableHeader>
+        {COLUMNS.map(col => (
+          <TableHeaderCell key={col.id} title={col.title} />
+        ))}
+      </TableHeader>
+      <TableBody>
         {rows.map(([date, { calories, protein }]) => {
-          const wk = workoutsMap[date];
-          const burn = tdee + (wk ? wk.burn_value : 0);
+          const wk      = workoutsMap[date];
+          const burn    = tdee + (wk ? wk.burn_value : 0);
           const deficit = burn - calories;
-          const deficitColor = deficit >= DEFICIT_TARGET ? "#3a7d44" : deficit >= 0 ? "#2c2418" : "#b84040";
-          const proteinColor = protein >= PROTEIN_TARGET ? "#3a7d44" : "#2c2418";
+          const deficitColor  = deficit >= DEFICIT_TARGET ? "positive" : deficit >= 0 ? "primary" : "negative";
+          const proteinColor  = protein >= PROTEIN_TARGET ? "positive" : "primary";
           return (
-            <tr key={date} onClick={() => onOpenDay(date)}>
-              <td><span className="date-str">{displayShort(date)}</span></td>
-              <td>
-                <span className="cell-small">{calories.toLocaleString()}</span>
-              </td>
-              <td>
-                {wk && <span style={{ fontSize: "13px", marginRight: "3px" }}>💪</span>}
-                <span className="cell-small">{burn.toLocaleString()}</span>
-              </td>
-              <td>
-                <span style={{ color: deficitColor, fontWeight: 600, fontSize: "1.05rem" }}>
+            <TableRow key={date} onClick={() => onOpenDay(date)} style={{ cursor: "pointer" }}>
+              <TableCell>
+                <Text type="text2">{displayShort(date)}</Text>
+              </TableCell>
+              <TableCell>
+                <Text type="text2">{calories.toLocaleString()}</Text>
+              </TableCell>
+              <TableCell>
+                <Text type="text2">{wk ? "💪 " : ""}{burn.toLocaleString()}</Text>
+              </TableCell>
+              <TableCell>
+                <Text type="text2" color={deficitColor} weight="bold">
                   {deficit >= 0 ? "−" : "+"}{Math.abs(deficit)}
-                </span>
-              </td>
-              <td><span className="protein-big" style={{ color: proteinColor }}>{fmtMacro(protein)}g</span></td>
-            </tr>
+                </Text>
+              </TableCell>
+              <TableCell>
+                <Text type="text2" color={proteinColor} weight="bold">
+                  {fmtMacro(protein)}g
+                </Text>
+              </TableCell>
+            </TableRow>
           );
         })}
-      </tbody>
-    </table>
+      </TableBody>
+    </Table>
   );
 }

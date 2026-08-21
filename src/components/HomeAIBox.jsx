@@ -1,4 +1,5 @@
 import { useState, useRef } from "react";
+import { Button, Text } from "@vibe/core";
 import { supabase } from "../supabase.js";
 import { fmtMacro, fmtDate, TDEE } from "../constants.js";
 
@@ -362,13 +363,18 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
         </div>
       )}
 
-      <button onClick={parseWithAI} disabled={!hasContent || parsing}
-        style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.85rem", letterSpacing: "0.06em", background: hasContent && !parsing ? "#b07d3a" : "#d6cfc4", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: hasContent && !parsing ? "pointer" : "not-allowed" }}>
+      <Button
+        kind="primary"
+        size="large"
+        onClick={parseWithAI}
+        disabled={!hasContent || parsing}
+        style={{ width: "100%" }}
+      >
         {parsing ? "Thinking…" : "Calculate with AI"}
-      </button>
+      </Button>
 
-      {aiError && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#c0392b", marginTop: "0.5rem" }}>{aiError}</div>}
-      {savedMsg && <div style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.72rem", color: "#3a7d44", marginTop: "0.5rem" }}>✓ {savedMsg}</div>}
+      {aiError && <Text type="text2" color="negative" style={{ marginTop: "0.5rem", display: "block" }}>{aiError}</Text>}
+      {savedMsg && <Text type="text2" color="positive" style={{ marginTop: "0.5rem", display: "block" }}>✓ {savedMsg}</Text>}
 
       {aiResult && (
         <div style={{ background: isWorkout ? "#eaf2eb" : "#f0ebe3", borderRadius: 6, padding: "0.75rem", marginTop: "0.75rem" }}>
@@ -432,15 +438,13 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
 
           <div style={{ display: "grid", gridTemplateColumns: isWorkout ? "1fr" : "1fr 1fr", gap: "0.5rem" }}>
             {!isWorkout && (
-              <button onClick={saveToFrequent} disabled={saving}
-                style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: "transparent", color: saving ? "#d6cfc4" : "#b07d3a", border: `1.5px solid ${saving ? "#d6cfc4" : "#b07d3a"}`, padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer" }}>
+              <Button kind="secondary" size="medium" onClick={saveToFrequent} disabled={saving}>
                 Save to My Foods
-              </button>
+              </Button>
             )}
-            <button onClick={logToday} disabled={saving}
-              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", letterSpacing: "0.04em", background: saving ? "#d6cfc4" : "#b07d3a", color: "#fff", border: "none", padding: "0.75rem 1rem", borderRadius: 4, cursor: saving ? "not-allowed" : "pointer" }}>
+            <Button kind="primary" size="medium" onClick={logToday} disabled={saving}>
               {saving ? "Saving…" : "Log today"}
-            </button>
+            </Button>
           </div>
         </div>
       )}
