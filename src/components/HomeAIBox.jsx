@@ -1,5 +1,5 @@
 import { useState, useRef } from "react";
-import { Button, Text } from "@vibe/core";
+import { Button, Text, TextField } from "@vibe/core";
 import { supabase } from "../supabase.js";
 import { fmtMacro, fmtDate, TDEE } from "../constants.js";
 
@@ -137,14 +137,14 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
     chip.dataset.serving = f.serving || "";
     chip.dataset.servingGrams = String(f.serving_grams ?? "");
     Object.assign(chip.style, {
-      display: "inline-flex", alignItems: "center", background: "#f0ebe3",
-      border: "1px solid #d8c9b8", borderRadius: "12px", padding: "1px 8px",
+      display: "inline-flex", alignItems: "center", background: "var(--primary-selected-color, #e0e9ff)",
+      border: "1px solid var(--primary-color, #0073ea)", borderRadius: "12px", padding: "1px 8px",
       verticalAlign: "middle", lineHeight: "1.8", margin: "0 1px", userSelect: "none",
     });
     const nameBtn = document.createElement("button");
     nameBtn.textContent = f.name;
     Object.assign(nameBtn.style, {
-      fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "#b07d3a",
+      fontFamily: "'DM Mono', monospace", fontSize: "0.78rem", color: "var(--primary-color, #0073ea)",
       background: "none", border: "none", cursor: "pointer", padding: "0",
       textDecoration: "underline", textDecorationStyle: "dotted", textUnderlineOffset: "2px",
     });
@@ -272,8 +272,7 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
   return (
     <div style={{ marginBottom: "1.5rem" }}>
       <div style={{ marginBottom: "0.6rem" }}>
-        <input type="date" value={date} onChange={e => setDate(e.target.value)}
-          style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.65rem", border: "1px solid #d8d0c4", borderRadius: 3, padding: "0.2rem 0.4rem", background: "#faf8f5", color: "#6b5f52", outline: "none" }} />
+        <TextField type="date" value={date} onChange={setDate} size="small" style={{ width: "fit-content" }} />
       </div>
 
       {chipReplacing && <>
@@ -308,10 +307,10 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
           onBeforeInput={e => {
             if (e.inputType === "deleteContentBackward") handleDeleteBackward(e);
           }}
-          style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "#faf8f5", border: "1px solid #d8d0c4", color: "#3d3228", padding: "0.55rem 0.7rem", borderRadius: 4, outline: "none", boxSizing: "border-box", minHeight: "7.8rem", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word", cursor: "text" }}
+          style={{ width: "100%", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", background: "var(--primary-background-color)", border: "1px solid var(--ui-border-color, #d8d0c4)", color: "var(--primary-text-color)", padding: "0.55rem 0.7rem", borderRadius: 4, outline: "none", boxSizing: "border-box", minHeight: "7.8rem", lineHeight: "1.6", whiteSpace: "pre-wrap", wordBreak: "break-word", cursor: "text" }}
         />
         {!hasContent && (
-          <div style={{ position: "absolute", top: "0.55rem", left: "0.7rem", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", color: "#b5a898", pointerEvents: "none", userSelect: "none", lineHeight: "1.6" }}>
+          <div style={{ position: "absolute", top: "0.55rem", left: "0.7rem", fontFamily: "'DM Mono', monospace", fontSize: "0.82rem", color: "var(--secondary-text-color, #b5a898)", pointerEvents: "none", userSelect: "none", lineHeight: "1.6" }}>
             Describe food or a workout… type @ to pick from my foods
           </div>
         )}
@@ -355,10 +354,9 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
             </div>
           ))}
           {photos.length < 5 && (
-            <button onClick={() => fileInputRef.current?.click()}
-              style={{ fontFamily: "'DM Mono', monospace", fontSize: "0.68rem", color: "#9a8f7e", background: "none", border: "1px solid #d8c9b8", borderRadius: 4, padding: "0.3rem 0.65rem", cursor: "pointer", letterSpacing: "0.04em", flexShrink: 0 }}>
+            <Button kind="tertiary" size="small" onClick={() => fileInputRef.current?.click()}>
               📷 {photos.length === 0 ? "Add photo" : "+"}
-            </button>
+            </Button>
           )}
         </div>
       )}
