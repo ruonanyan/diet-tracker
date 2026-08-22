@@ -76,6 +76,29 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
     setHasContent(ed.textContent.trim().length > 0 || !!ed.querySelector(".food-chip") || photos.length > 0);
   }
 
+  function normalizeToJpeg(dataUrl) {
+    return new Promise(resolve => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 1200;
+        let { naturalWidth: w, naturalHeight: h } = img;
+        if (w > MAX || h > MAX) {
+          const scale = MAX / Math.max(w, h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = w; canvas.height = h;
+        canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+        const jpeg = canvas.toDataURL("image/jpeg", 0.85);
+        const base64 = jpeg.split(",")[1];
+        resolve({ base64, mediaType: "image/jpeg", previewUrl: dataUrl });
+      };
+      img.onerror = () => resolve(null);
+      img.src = dataUrl;
+    });
+  }
+
   function handlePhotoSelect(e) {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
@@ -83,11 +106,10 @@ export default function HomeAIBox({ onLogged, profile, tdee, frequentFoods = [] 
     const toRead = files.slice(0, slots);
     toRead.forEach(file => {
       const reader = new FileReader();
-      reader.onload = () => {
-        const dataUrl = reader.result;
-        const [header, base64] = dataUrl.split(",");
-        const mediaType = header.match(/data:([^;]+)/)[1];
-        setPhotos(prev => prev.length < 5 ? [...prev, { base64, mediaType, previewUrl: dataUrl }] : prev);
+      reader.onload = async () => {
+        const result = await normalizeToJpeg(reader.result);
+        if (!result) return;
+        setPhotos(prev => prev.length < 5 ? [...prev, result] : prev);
         setHasContent(true);
       };
       reader.readAsDataURL(file);
